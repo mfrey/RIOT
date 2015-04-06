@@ -20,6 +20,8 @@
 #ifndef ARA_ROUTINGTABLE_H_
 #define ARA_ROUTINGTABLE_H_
 
+#include "constants.h"
+
 #include "common/netaddr.h"
 
 #ifdef __cplusplus
@@ -34,6 +36,7 @@ struct ara_routing_entry_t
     struct netaddr destination;      /**< destination address */
     timex_t lastAccessTime;          /**< last access time of the routing table entry */
     struct ara_next_hop_t* nextHops; /**< list of all potential next hops */
+    uint8_t nextHopListSize;
 };
 
 /** 
@@ -50,6 +53,32 @@ struct ara_nexthop_t
     struct ara_nexthop* next;   /**< next entry in the list */
 };     
 
+
+struct netaddr *routingtable_get_next_hop(struct netaddr *destination);
+
+struct ara_routing_entry_t routingtable_get_entry(struct netaddr *destination);
+
+/**
+ * @brief     Initializes the routing table.
+ */
+void routingtable_init(void);
+
+/**
+ * @brief     Prints the routing table.
+ */
+void print_routingtable(void);
+
+/**
+ * @brief     Prints a routing table entry.
+ * @param[in] entry The routing table entry which should be printed
+ */
+void print_routingtable_entry(struct ara_routing_entry_t *entry);
+
+/**
+ * @brief     Prints a next hop entry.
+ * @param[in] entry The next hop entry which should be printed
+ */
+void print_nexthop_entry(struct ara_nexthop_t *entry);
 
 #ifdef __cplusplus
 }
