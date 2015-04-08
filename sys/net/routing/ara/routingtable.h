@@ -1,5 +1,4 @@
 /*
- * Copyright (C) 2015 Freie Universität Berlin
  * Copyright (C) 2015 Michael Frey <frey@informatik.hu-berlin.de>
  *
  * This file is subject to the terms and conditions of the GNU Lesser
