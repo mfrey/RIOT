@@ -249,6 +249,12 @@ endif
 ifneq (,$(filter sixlowpan,$(USEMODULE)))
   USEMODULE += ipv6_hdr
 endif
+ifneq (,$(filter ara,$(USEMODULE)))
+#  USEMODULE += vtimer
+#  USEMODULE += sixlowpan
+  USEMODULE += oonf_common
+#  USEMODULE += oonf_rfc5444
+endif
 
 ifneq (,$(filter ipv6_hdr,$(USEMODULE)))
   USEMODULE += inet_csum
