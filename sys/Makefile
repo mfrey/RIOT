@@ -13,6 +13,9 @@ endif
 ifneq (,$(filter routing,$(USEMODULE)))
     DIRS += net/routing
 endif
+ifneq (,$(filter ara,$(USEMODULE)))
+    DIRS += net/routing/ara
+endif
 ifneq (,$(filter oneway_malloc,$(USEMODULE)))
     DIRS += oneway-malloc
 endif
