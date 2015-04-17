@@ -8,6 +8,12 @@
 
 #include "tests-ara.h"
 
+static void test_ara_routing_table_initialized(void)
+{
+    routingtable_init();
+    TEST_ASSERT_EQUAL_INT(routing_table[0].nextHopListSize, 0);
+}
+
 /** FIXME: this is just a dummy */
 static void test_ara_dummy(void)
 {
@@ -19,7 +25,8 @@ Test *tests_ara_tests(void)
 {
 
     EMB_UNIT_TESTFIXTURES(fixtures) {
-        new_TestFixture(test_ara_dummy)
+        new_TestFixture(test_ara_dummy),
+        new_TestFixture(test_ara_routing_table_initialized)
     };
 
     EMB_UNIT_TESTCALLER(ara_tests, NULL, NULL, fixtures);

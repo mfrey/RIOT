@@ -21,6 +21,7 @@
 #include "embUnit.h"
 
 #include "net/routing/ara/constants.h"
+#include "net/routing/ara/routingtable.h"
 
 #ifdef __cplusplus
 extern "C" {

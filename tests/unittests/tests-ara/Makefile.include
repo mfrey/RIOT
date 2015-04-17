@@ -1,3 +1,4 @@
 USEMODULE += ara
+USEMODULE += defaulttransceiver
 INCLUDES += -I$(RIOTBASE)/sys/
 
