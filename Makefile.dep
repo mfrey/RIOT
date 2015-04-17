@@ -250,6 +250,8 @@ ifneq (,$(filter sixlowpan,$(USEMODULE)))
   USEMODULE += ipv6_hdr
 endif
 ifneq (,$(filter ara,$(USEMODULE)))
+  USEMODULE += vtimer
+  USEMODULE += sixlowpan
   USEMODULE += oonf_common
 endif
 
