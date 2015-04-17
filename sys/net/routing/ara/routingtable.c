@@ -18,12 +18,28 @@
 
 #include "routingtable.h"
 
-static struct ara_routing_entry_t routing_table[ARA_MAX_ROUTING_ENTRIES];
 
 void routingtable_init(void) 
 {
-
+    /* initialize routing table */
     memset(&routing_table, 0, sizeof(routing_table));
+}
+
+void routingtable_add_entry(struct ara_routing_entry_t *entry)
+{
+    /* only add an entry if there is not an entry with the specified addres */ 
+    if (routingtable_get_entry(&(entry->destination))) {
+        return;
+    }
+
+    /* find a free spot in the routing table */
+    for (unsigned i = 0; i < ARA_MAX_ROUTING_ENTRIES; i++) {
+        // TODO: check if this really works 
+        if (routing_table[i].destination == 0) {
+            memcpy(&routing_table[i], entry, sizeof(struct ara_routing_entry_t));
+            return;
+        }
+    }
 }
 
 struct netaddr *routingtable_get_next_hop(struct netaddr *destination)
@@ -37,33 +53,41 @@ struct netaddr *routingtable_get_next_hop(struct netaddr *destination)
     return NULL;
 }
 
-struct ara_routing_entry_t routingtable_get_entry(struct netaddr *destination)
+struct ara_routing_entry_t* routingtable_get_entry(struct netaddr *destination)
 {
+    for (unsigned i = 0; i < ARA_MAX_ROUTING_ENTRIES; i++) {
+        if (!netaddr_cmp(&routing_table[i].destination, destination)) {
+#if ENABLE_DEBUG
+            print_routing_table_entry(&routing_table[i]);
+#endif
+            return &routing_table[i];
+        }
+    }
 
     return NULL;
 }
 
-void print_routingtable(void)
+void print_routing_table(void)
 {
     printf("===== BEGIN ROUTING TABLE ===================\n");
     for (int i = 0; i < ARA_MAX_ROUTING_ENTRIES; i++) {
          // add check if entries are up to date 
-         print_routingtable_entry(&routing_table[i]);
+         print_routing_table_entry(&routing_table[i]);
     }
     printf("===== END ROUTING TABLE =====================\n");
 }
 
-void print_routingtable_entry(struct ara_routing_entry_t *entry)
+void print_routing_table_entry(struct ara_routing_entry_t *entry)
 {
     struct netaddr_str nbuf;
     printf(".................................\n");
     printf("\t destination: %s\n", netaddr_to_string(&nbuf, &(entry->destination)));
     for(int i = 0; i < entry->nextHopListSize; i++) {
-         print_nexthop_entry(&entry->nextHops[i]);
+         print_next_hop_entry(&entry->nextHops[i]);
     }
 }
 
-void print_nexthop_entry(struct ara_nexthop_entry_t *entry)
+void print_next_hop_entry(struct ara_next_hop_t *entry)
 {
     struct netaddr_str nbuf;
     printf("\t\t next hop: %s\n", netaddr_to_string(&nbuf, &(entry->nextHop)));
