@@ -18,12 +18,14 @@
 
 #include "helper.h"
 
-void cumsum(double* input, double* output, uint8_t size)
+void ara_cumsum(double* input, double* output, uint8_t size)
 {
-    output[0] = input[0];
+    if (size > 0) {
+        output[0] = input[0];
 
-    for (uint8_t i = 1; i < size; i++) {
-        output[i] = output[i-1] + input[i];
+        for (uint8_t i = 1; i < size; i++) {
+            output[i] = output[i-1] + input[i];
+        }
     }
 }
 
