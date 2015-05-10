@@ -18,7 +18,7 @@
 
 #include "helper.h"
 
-void ara_cumsum(double* input, double* output, uint8_t size)
+void ara_cum_sum(float* input, float* output, uint8_t size)
 {
     if (size > 0) {
         output[0] = input[0];

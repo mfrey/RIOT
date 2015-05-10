@@ -32,7 +32,7 @@ extern "C" {
  * @param[inout] output The result array of the cumulated sum
  * @param[in] size The size of the array
  */
-void ara_cumsum(double* input, double* output, uint8_t size);
+void ara_cum_sum(float* input, float* output, uint8_t size);
 
 #ifdef __cplusplus
 }
