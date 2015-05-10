@@ -10,25 +10,17 @@
  * @ingroup     ara 
  * @{
  *
- * @file        ara.h
+ * @file        ara.c
  * @brief       ARA routing protocol
  *
  * @author      Michael Frey <frey@informatik.hu-berlin.de>
  */
 
-#ifndef ARA_H_
-#define ARA_H_
+#include "ara.h"
+#include "forwarding.h"
 
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-void ara_init(void);
-
-
-#ifdef  __cplusplus
+void ara_init(void)
+{
+    /* initialize the probablistic forwarding */
+    ara_forwarding_init();
 }
-#endif
-
-#endif /* ARA_H_ */

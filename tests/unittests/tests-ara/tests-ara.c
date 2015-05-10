@@ -10,22 +10,46 @@
 
 static void test_ara_routing_table_initialized(void)
 {
-    routingtable_init();
-    TEST_ASSERT_EQUAL_INT(routing_table[0].nextHopListSize, 0);
+    ara_routing_table_init();
+    TEST_ASSERT_EQUAL_INT(ara_routing_table[0].nextHopListSize, 0);
+    TEST_ASSERT_EQUAL_INT(ara_routing_table[0].lastAccessTime.seconds, 0);
+    TEST_ASSERT_EQUAL_INT(ara_routing_table[0].lastAccessTime.microseconds, 0);
 }
 
-/** FIXME: this is just a dummy */
-static void test_ara_dummy(void)
+static void test_ara_cumsum(void)
 {
-    int i = 42;
-//    TEST_ASSERT_EQUAL_INT(128, 128);
+    double input[] = {2.,3.,4.};
+    double output[] = {0.,0.,0.};
+
+    /* call the function with size zero */
+    ara_cumsum(input, output, 0);
+    /* nothing should change */
+    TEST_ASSERT_EQUAL_INT(input[0], 2);
+    TEST_ASSERT_EQUAL_INT(input[1], 3);
+    TEST_ASSERT_EQUAL_INT(input[2], 4);
+
+    TEST_ASSERT_EQUAL_INT(output[0], 0);
+    TEST_ASSERT_EQUAL_INT(output[1], 0);
+    TEST_ASSERT_EQUAL_INT(output[2], 0);
+
+    ara_cumsum(input, output, 3);
+
+    /* TODO: no double/float check */
+    TEST_ASSERT_EQUAL_INT(output[0], 2);
+    TEST_ASSERT_EQUAL_INT(output[1], 5);
+    TEST_ASSERT_EQUAL_INT(output[2], 9);
+    
+    ara_cumsum(input, input, 3);
+    TEST_ASSERT_EQUAL_INT(input[0], 2);
+    TEST_ASSERT_EQUAL_INT(input[1], 5);
+    TEST_ASSERT_EQUAL_INT(input[2], 9);
 }
 
 Test *tests_ara_tests(void)
 {
 
     EMB_UNIT_TESTFIXTURES(fixtures) {
-        new_TestFixture(test_ara_dummy),
+        new_TestFixture(test_ara_cumsum),
         new_TestFixture(test_ara_routing_table_initialized)
     };
 
