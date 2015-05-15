@@ -26,7 +26,7 @@ void ara_forwarding_init(void)
     ara_initialize_random_number_generator();
 }
 
-struct ara_next_hop_t* ara_stochastic_forwarding(struct ara_routing_entry_t *entry)
+ara_next_hop_t* ara_stochastic_forwarding(ara_routing_entry_t *entry)
 {
     if (entry->nextHopListSize > 1) {
         /* the index of the next hop */
@@ -65,7 +65,7 @@ struct ara_next_hop_t* ara_stochastic_forwarding(struct ara_routing_entry_t *ent
                 free(result);
                 free(probabilities);
 
-                struct ara_next_hop_t *next_hop = ara_get_next_hop_entry(entry, node_index);
+                ara_next_hop_t *next_hop = ara_get_next_hop_entry(entry, node_index);
                 return next_hop;
             }
 

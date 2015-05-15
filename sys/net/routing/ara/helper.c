@@ -28,4 +28,3 @@ void ara_cum_sum(float* input, float* output, uint8_t size)
         }
     }
 }
-

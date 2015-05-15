@@ -40,7 +40,7 @@ void ara_forwarding_init(void);
  * @brief     Returns the next hop for a given destination 
  * @param[in] entry The routing table entry of a destination
  */
-struct ara_next_hop_t* ara_stochastic_forwarding(struct ara_routing_entry_t *entry);
+ara_next_hop_t* ara_stochastic_forwarding(ara_routing_entry_t *entry);
 
 
 #ifdef __cplusplus
