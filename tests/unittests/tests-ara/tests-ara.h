@@ -20,6 +20,7 @@
 
 #include "embUnit.h"
 
+#include "net/routing/ara/helper.h"
 #include "net/routing/ara/constants.h"
 #include "net/routing/ara/routingtable.h"
 
