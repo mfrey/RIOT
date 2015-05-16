@@ -62,9 +62,12 @@ void routingtable_del_entry(struct netaddr address)
     if (entry != NULL) {
         /* stop the timer */
 
+	/* remove the entry from the hash table */
+	HASH_DEL(ara_routing_table, entry);
         /* reset the data  */
-
-        /* remove the next hop list */
+	ara_routing_table_del_next_hops(entry);
+        /* free the entry */
+	free(entry);
     }
 }
 
@@ -89,7 +92,7 @@ struct netaddr *routingtable_get_next_hop(struct netaddr *destination)
 
 ara_routing_entry_t* routingtable_get_entry(struct netaddr *destination)
 {
-    ara_routing_entry_t *result;
+    ara_routing_entry_t *result = NULL;
     HASH_FIND(hh, ara_routing_table, destination, sizeof(struct netaddr), result);
     return result;
 }
@@ -193,5 +196,37 @@ void ara_add_next_hop_entry(struct netaddr *destination, ara_next_hop_t *entry)
         struct netaddr_str nbuf;
         printf("there is no routing table entry for %s\n", netaddr_to_string(&nbuf, destination));
 #endif
+    }
+}
+
+void ara_routing_table_del_next_hops(ara_routing_entry_t *entry)
+{
+    /* there are no entries in the next hop list */
+    if (entry->nextHopListSize == 0) {
+        return;
+    /* there is only a single entry in the next hop list */
+    } else if (entry->nextHopListSize == 1) {
+	free(entry->nextHops);
+	return;
+    } else {
+	// TODO: check if that makes sense
+	// FIXME: that doesn't make sense, also think about if you want to add actually make it a ring 
+	for (uint8_t i = 0; i < entry->nextHopListSize; i++) {
+	    ara_next_hop_entry_t *next_hop = entry->nextHops;
+
+	    if (next_hop) {
+		/* update the next/prev ptrs of the previous/next next hop */
+	        next_hop->prev->next = next_hop->next;
+		next_hop->next->prev = next_hop->prev;
+                /* update the start of the next hop list */
+                entry->nextHops = next_hop->next;
+		/* set current next/prev to null */
+		next_hop->next = NULL;
+		next_hop->prev = NULL;
+
+		/* free the entry */
+		free(next_hop);
+	    }
+	}
     }
 }
