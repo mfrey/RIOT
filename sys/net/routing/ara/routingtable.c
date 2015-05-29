@@ -26,32 +26,14 @@ static ara_routing_entry_t* ara_routing_table = NULL;
 
 void ara_routing_table_init(void) 
 {
-    // FIXME
-
-    /*
-    ara_routing_table = (ara_routing_entry_t*) malloc(sizeof(ara_routing_table_t));
-
-    if (ara_routing_table) {
-        ara_routing_table->table = (ara_routing_entry_t**) malloc(sizeof(ara_routing_entry_t*) * ARA_MAX_ROUTING_ENTRIES);
-
-        if (ara_routing_table->table) {
-            for (uint8_t i = 0; i < ARA_MAX_ROUTING_ENTRIES; i++) {
-                ara_routing_table->table[i] = NULL;
-            }
-
-            ara_routing_table->size = ARA_MAX_ROUTING_ENTRIES;
-        }
-    }
-    */
+    //
 }
 
 void ara_routing_table_add_entry(ara_routing_entry_t *entry)
 {
-    if (routingtable_get_entry(entry->destination)) {
-        return;
+    if (!ara_routing_table_entry_exists(entry->destination)) {
+        HASH_ADD_KEYPTR(hh, ara_routing_table, entry->destination, sizeof(struct netaddr), entry);
     }
-
-    // TODO
 }
 
 void routingtable_del_entry(struct netaddr address)
@@ -59,15 +41,15 @@ void routingtable_del_entry(struct netaddr address)
     /* find the routing table entry */
     ara_routing_entry_t *entry = routingtable_get_entry(&(address));
 
-    if (entry != NULL) {
+    if (entry) {
         /* stop the timer */
 
-	/* remove the entry from the hash table */
-	HASH_DEL(ara_routing_table, entry);
+        /* remove the entry from the hash table */
+        HASH_DEL(ara_routing_table, entry);
         /* reset the data  */
-	ara_routing_table_del_next_hops(entry);
+        ara_routing_table_del_next_hops(entry);
         /* free the entry */
-	free(entry);
+        free(entry);
     }
 }
 
@@ -89,6 +71,10 @@ struct netaddr *routingtable_get_next_hop(struct netaddr *destination)
     return NULL;
 }
 
+bool ara_routing_table_entry_exists(struct netaddr *destination) 
+{
+    return (routingtable_get_entry(destination) != NULL);
+}
 
 ara_routing_entry_t* routingtable_get_entry(struct netaddr *destination)
 {
@@ -206,27 +192,27 @@ void ara_routing_table_del_next_hops(ara_routing_entry_t *entry)
         return;
     /* there is only a single entry in the next hop list */
     } else if (entry->nextHopListSize == 1) {
-	free(entry->nextHops);
-	return;
+        free(entry->nextHops);
+        return;
     } else {
-	// TODO: check if that makes sense
-	// FIXME: that doesn't make sense, also think about if you want to add actually make it a ring 
-	for (uint8_t i = 0; i < entry->nextHopListSize; i++) {
-	    ara_next_hop_entry_t *next_hop = entry->nextHops;
+        // TODO: check if that makes sense
+        // FIXME: that doesn't make sense, also think about if you want to add actually make it a ring 
+        for (uint8_t i = 0; i < entry->nextHopListSize; i++) {
+            ara_next_hop_t *next_hop = entry->nextHops;
 
-	    if (next_hop) {
-		/* update the next/prev ptrs of the previous/next next hop */
-	        next_hop->prev->next = next_hop->next;
-		next_hop->next->prev = next_hop->prev;
+            if (next_hop) {
+                /* update the next/prev ptrs of the previous/next next hop */
+                next_hop->prev->next = next_hop->next;
+                next_hop->next->prev = next_hop->prev;
                 /* update the start of the next hop list */
                 entry->nextHops = next_hop->next;
-		/* set current next/prev to null */
-		next_hop->next = NULL;
-		next_hop->prev = NULL;
+                /* set current next/prev to null */
+                next_hop->next = NULL;
+                next_hop->prev = NULL;
 
-		/* free the entry */
-		free(next_hop);
-	    }
-	}
+                /* free the entry */
+                free(next_hop);
+            }
+        }
     }
 }

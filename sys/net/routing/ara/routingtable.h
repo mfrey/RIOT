@@ -118,6 +118,9 @@ float ara_get_pheromone_value(ara_routing_entry_t *entry, uint8_t index);
  */
 void ara_add_next_hop_entry(struct netaddr *destination, ara_next_hop_t *entry);
 
+bool ara_routing_table_entry_exists(struct netaddr *destination);
+
+void ara_routing_table_del_next_hops(ara_routing_entry_t *entry);
 
 #ifdef __cplusplus
 }
