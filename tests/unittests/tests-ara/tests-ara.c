@@ -18,24 +18,44 @@ static void test_ara_routing_table_initialized(void)
     */
 }
 
+static void test_ara_routing_table_get_entry(void)
+{
+    ara_routing_entry_t entry; 
+
+    struct netaddr address = { {
+            0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+            0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
+        }, AF_INET6, 128
+    };
+
+    /* the entry should not be in the routing table */
+    TEST_ASSERT_EQUAL_INT(true, routingtable_get_entry(&address) == NULL); 
+ 
+    /* set the address */
+    entry.destination = &address; 
+    /* add the entry to the routing table */
+    ara_routing_table_add_entry(&entry);
+
+    /* the entry should be in the routing table */
+    TEST_ASSERT_EQUAL_INT(true, routingtable_get_entry(&address) != NULL); 
+}
+
 static void test_ara_routing_table_add_entry(void)
 {
-    /*
-    struct ara_routing_entry_t *entry = (struct ara_routing_entry_t*) malloc(sizeof(struct ara_routing_entry_t));
+    ara_routing_entry_t entry; 
 
-    if (entry) { 
-        memset(entry, 0, sizeof(struct ara_routing_entry_t));
-        ara_routing_table_add_entry(entry);
+    struct netaddr address = { {
+            0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+            0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
+        }, AF_INET6, 128
+    };
 
-        TEST_ASSERT(&ara_routing_table[0] != entry);
-
-        TEST_ASSERT_EQUAL_INT(ara_routing_table[0].nextHopListSize, entry->nextHopListSize);
-        TEST_ASSERT_EQUAL_INT(ara_routing_table[0].lastAccessTime.seconds, entry->lastAccessTime.seconds);
-        TEST_ASSERT_EQUAL_INT(ara_routing_table[0].lastAccessTime.microseconds, entry->lastAccessTime.microseconds);
-
-        free(entry);
-    }
+    entry.destination = &address;
+    // FIXME: this results in a segfault -> check!
+/*
+    ara_routing_table_add_entry(&entry);
 */
+    //TEST_ASSERT_EQUAL_INT(true, ara_routing_table_entry_exists(&address) != NULL); 
 }
 
 static void test_ara_cum_sum(void)
@@ -71,6 +91,7 @@ Test *tests_ara_tests(void)
 {
     EMB_UNIT_TESTFIXTURES(fixtures) {
         new_TestFixture(test_ara_cum_sum),
+        new_TestFixture(test_ara_routing_table_get_entry),
         new_TestFixture(test_ara_routing_table_add_entry),
         new_TestFixture(test_ara_routing_table_initialized)
     };
