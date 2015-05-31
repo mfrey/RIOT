@@ -35,7 +35,7 @@ extern "C" {
  */                                                                                                                           
 struct ara_next_hop_s 
 {                                                                                                                                                     
-    struct netaddr* address;      /**< the actual next hop */
+    struct netaddr* address;     /**< the actual next hop */
     double phi;                  /**< pheromone value of the entry */
     double credit;               /**< how many times we may not receive an ack before the route is dropped */
     uint8_t ttl;                 /**< TTL for this entry */

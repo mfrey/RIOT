@@ -46,7 +46,7 @@ void routingtable_del_entry(struct netaddr address)
 
         /* remove the entry from the hash table */
         HASH_DEL(ara_routing_table, entry);
-        /* reset the data  */
+        /* reset the data */
         ara_routing_table_del_next_hops(entry);
         /* free the entry */
         free(entry);
@@ -64,8 +64,6 @@ struct netaddr *routingtable_get_next_hop(struct netaddr *destination)
             // TODO: better check about dangling pointers
             return next_hop->address;
         }
-
-        return NULL;
     }
 
     return NULL;
@@ -166,7 +164,7 @@ void ara_add_next_hop_entry(struct netaddr *destination, ara_next_hop_t *entry)
                 /* update the pointers of the recently added element */
                 entry->prev = last;
                 entry->next = first;
-            }
+            
         /* we are about to add the first element to the list */
         } else {
             routing_table_entry->nextHops = entry;
