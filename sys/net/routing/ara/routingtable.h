@@ -20,6 +20,7 @@
 #define ARA_ROUTINGTABLE_H_
 
 #include "uthash.h"
+#include "utlist.h"
 #include "constants.h"
 
 #include <timex.h>
@@ -52,8 +53,8 @@ struct ara_routing_entry_s
 {
     struct netaddr* destination; /**< destination address */
     timex_t lastAccessTime;      /**< last access time of the routing table entry */
-    ara_next_hop_t* nextHops;    /**< list of all potential next hops */
-    uint8_t nextHopListSize;     /**< the actual size of the next hop list */
+    ara_next_hop_t* next_hops;   /**< list of all potential next hops */
+    uint8_t size;                /**< size of the next hop list */
     UT_hash_handle hh;
 };
 
@@ -113,14 +114,16 @@ float ara_get_pheromone_value(ara_routing_entry_t *entry, uint8_t index);
 
 /**
  * @brief     Adds a next hop entry to a given routing table entry
- * @param[in] destination The destination address of the routing table entry 
- * @param[in] entry The next hop entry to add
+ * @param[in] entry The routing table entry for the next hop 
+ * @param[in] next_hop The next hop entry to add
  */
-void ara_add_next_hop_entry(struct netaddr *destination, ara_next_hop_t *entry);
+void ara_add_next_hop_entry(ara_routing_entry_t *entry, ara_next_hop_t *next_hop);
 
 bool ara_routing_table_entry_exists(struct netaddr *destination);
 
 void ara_routing_table_del_next_hops(ara_routing_entry_t *entry);
+
+int ara_next_hop_compare(ara_next_hop_t *first, ara_next_hop_t *second);
 
 #ifdef __cplusplus
 }

@@ -28,32 +28,37 @@ void ara_forwarding_init(void)
 
 ara_next_hop_t* ara_stochastic_forwarding(ara_routing_entry_t *entry)
 {
-    if (entry->nextHopListSize > 1) {
+    if (entry->size > 1) {
         /* the index of the next hop */
         uint8_t node_index = 0;
         /* the total sum of the pheromone values  */
         float pheromone_sum = .0;
 
-        float* probabilities = (float*) malloc(sizeof(float) * entry->nextHopListSize);
+        float* probabilities = (float*) malloc(sizeof(float) * entry->size);
 
         if (probabilities != NULL) {
+            // FIXME: better naming or using pointers instead
+            uint8_t j = 0;
+            ara_next_hop_t *element, *temporary_element;
+
             /* store the pheromone values temporary in the probablities array */
-            for (uint8_t i = 0; i < entry->nextHopListSize; i++) {
-                probabilities[i] = ara_get_pheromone_value(entry, i);
+            DL_FOREACH_SAFE(entry->next_hops, element, temporary_element) {
+                probabilities[j] = element->phi;
                 /** store the raw pheromone values */
-                pheromone_sum += probabilities[i];
+                pheromone_sum += probabilities[j];
+                j++;
             }
 
             /* compute the probablities array */
-            for (uint8_t i = 0; i < entry->nextHopListSize; i++) {
+            for (uint8_t i = 0; i < entry->size; i++) {
                 probabilities[i] = probabilities[i]/pheromone_sum;
             }
 
-            float* result = (float*) malloc(sizeof(float) * entry->nextHopListSize);
+            float* result = (float*) malloc(sizeof(float) * entry->size);
 
             if (result != NULL) {
                 /* compute the cumulative sum */
-                ara_cum_sum(probabilities, result, entry->nextHopListSize);
+                ara_cum_sum(probabilities, result, entry->size);
 
                 /* get a random number between 1.0 and 1.0 */
                 float random_number = ara_get_random_number();

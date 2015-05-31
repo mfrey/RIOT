@@ -36,7 +36,7 @@ void ara_routing_table_add_entry(ara_routing_entry_t *entry)
     }
 }
 
-void routingtable_del_entry(struct netaddr address)
+void ara_routing_table_del_entry(struct netaddr address)
 {
     /* find the routing table entry */
     ara_routing_entry_t *entry = routingtable_get_entry(&(address));
@@ -44,10 +44,10 @@ void routingtable_del_entry(struct netaddr address)
     if (entry) {
         /* stop the timer */
 
-        /* remove the entry from the hash table */
-        HASH_DEL(ara_routing_table, entry);
         /* reset the data */
         ara_routing_table_del_next_hops(entry);
+        /* remove the entry from the hash table */
+        HASH_DEL(ara_routing_table, entry);
         /* free the entry */
         free(entry);
     }
@@ -95,10 +95,13 @@ void ara_print_routing_table(void)
 void ara_print_routing_table_entry(ara_routing_entry_t *entry)
 {
     struct netaddr_str nbuf;
+    ara_next_hop_t *element, *temporary_element;
+
     printf(".................................\n");
     printf("\t destination: %s\n", netaddr_to_string(&nbuf, entry->destination));
-    for(int i = 0; i < entry->nextHopListSize; i++) {
-         ara_print_next_hop_entry(&entry->nextHops[i]);
+
+    DL_FOREACH_SAFE(entry->next_hops, element, temporary_element) {
+        ara_print_next_hop_entry(element);
     }
 }
 
@@ -109,108 +112,47 @@ void ara_print_next_hop_entry(ara_next_hop_t *entry)
     printf("\t\t phi: %f credit: %f ttl: %d\n", entry->phi, entry->credit, entry->ttl);
 }
 
-ara_next_hop_t* ara_get_next_hop_entry(ara_routing_entry_t *entry, uint8_t index)
+void ara_add_next_hop_entry(ara_routing_entry_t *entry, ara_next_hop_t *next_hop)
 {
-    /* check if the index is 'out of bounds' */
-    if (entry->nextHopListSize > index) {
-        ara_next_hop_t* ptr = entry->nextHops;
+    ara_next_hop_t *result;
+    DL_SEARCH(entry->next_hops, result, next_hop, ara_next_hop_compare);
 
-        for (uint8_t i = 0; i < index; i++) {
-            ptr++;
-        }
-
-        return ptr;
-    }
-
-    return NULL;
-}
-
-float ara_get_pheromone_value(ara_routing_entry_t *entry, uint8_t index)
-{
-    ara_next_hop_t *next_hop = ara_get_next_hop_entry(entry, index);
-    
-    if (!next_hop){
-        return next_hop->phi;
-    }
-
-    // TODO
-    return -1.0;
-}
-
-void ara_add_next_hop_entry(struct netaddr *destination, ara_next_hop_t *entry)
-{
-    ara_routing_entry_t* routing_table_entry = routingtable_get_entry(destination);
-
-    if (!routing_table_entry) {
-        ara_next_hop_t* first = routing_table_entry->nextHops;
-
-        if (!first) {
-            ara_next_hop_t* last = routing_table_entry->nextHops->prev;
-
-            /* there is only a single element in the list */
-            if (last) {
-                /* update the pointers of our formely single element */
-                first->next = entry;
-                first->prev = entry;
-                /* update the pointers of the recently added element */
-                entry->next = first;
-                entry->prev = first;
-
-            /* there is more than one element in the list */
-            } else {
-                /* the new element is the last element */
-                last->next = entry;
-                first->prev = entry;
-                /* update the pointers of the recently added element */
-                entry->prev = last;
-                entry->next = first;
-            
-        /* we are about to add the first element to the list */
-        } else {
-            routing_table_entry->nextHops = entry;
-            entry->next = NULL;
-            entry->prev = NULL;
-        }
-
-        // FIXME!!!
-        /* update the size of the next hop list */
-        //entry->nextHopListSize++;
-    } else { 
+    if (!result) {
+        DL_APPEND(entry->next_hops, next_hop);
+        entry->size++;
+    } else {
 #if ENABLE_DEBUG
-        struct netaddr_str nbuf;
-        printf("there is no routing table entry for %s\n", netaddr_to_string(&nbuf, destination));
+        struct netaddr_str buf;
+        printf("there is already a next hop entry %s\n", netaddr_to_string(&buf, next_hop->address));
 #endif
     }
 }
 
-void ara_routing_table_del_next_hops(ara_routing_entry_t *entry)
+void ara_routing_table_del_next_hops(ara_routing_entry_t *entry) 
 {
-    /* there are no entries in the next hop list */
-    if (entry->nextHopListSize == 0) {
-        return;
-    /* there is only a single entry in the next hop list */
-    } else if (entry->nextHopListSize == 1) {
-        free(entry->nextHops);
-        return;
-    } else {
-        // TODO: check if that makes sense
-        // FIXME: that doesn't make sense, also think about if you want to add actually make it a ring 
-        for (uint8_t i = 0; i < entry->nextHopListSize; i++) {
-            ara_next_hop_t *next_hop = entry->nextHops;
+    ara_next_hop_t *element, *temporary_element;
 
-            if (next_hop) {
-                /* update the next/prev ptrs of the previous/next next hop */
-                next_hop->prev->next = next_hop->next;
-                next_hop->next->prev = next_hop->prev;
-                /* update the start of the next hop list */
-                entry->nextHops = next_hop->next;
-                /* set current next/prev to null */
-                next_hop->next = NULL;
-                next_hop->prev = NULL;
+    DL_FOREACH_SAFE(entry->next_hops, element, temporary_element) {
+        DL_DELETE(entry->next_hops, element); 
+    }
+}
 
-                /* free the entry */
-                free(next_hop);
-            }
+int ara_next_hop_compare(ara_next_hop_t *first, ara_next_hop_t *second)
+{
+    return netaddr_cmp(first->address, second->address);
+}
+
+// FIXME: might be a source of issues
+ara_next_hop_t *ara_get_next_hop_entry(ara_routing_entry_t *entry, uint8_t position)
+{
+    uint8_t current_position = 0;
+    ara_next_hop_t *result, *temporary_element;
+
+    DL_FOREACH_SAFE(entry->next_hops, result, temporary_element) {
+        if (current_position == position) {
+            return result;
         }
     }
+
+    return NULL;
 }
