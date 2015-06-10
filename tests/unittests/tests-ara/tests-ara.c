@@ -31,13 +31,13 @@ static void test_ara_routing_table_get_entry(void)
     /* the entry should not be in the routing table */
     TEST_ASSERT_EQUAL_INT(true, routingtable_get_entry(&address) == NULL); 
  
-    /* set the address */
     entry.destination = &address; 
     /* add the entry to the routing table */
     ara_routing_table_add_entry(&entry);
 
     /* the entry should be in the routing table */
     TEST_ASSERT_EQUAL_INT(true, routingtable_get_entry(&address) != NULL); 
+    ara_routing_table_del_entry(&entry);
 }
 
 static void test_ara_routing_table_add_entry(void)
@@ -51,11 +51,10 @@ static void test_ara_routing_table_add_entry(void)
     };
 
     entry.destination = &address;
-    // FIXME: this results in a segfault -> check!
-/*
+
     ara_routing_table_add_entry(&entry);
-*/
-    //TEST_ASSERT_EQUAL_INT(true, ara_routing_table_entry_exists(&address) != NULL); 
+
+    TEST_ASSERT_EQUAL_INT(true, ara_routing_table_entry_exists(&address)); 
 }
 
 static void test_ara_cum_sum(void)
