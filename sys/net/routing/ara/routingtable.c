@@ -36,11 +36,8 @@ void ara_routing_table_add_entry(ara_routing_entry_t *entry)
     }
 }
 
-void ara_routing_table_del_entry(struct netaddr address)
+void ara_routing_table_del_entry(ara_routing_entry_t *entry)
 {
-    /* find the routing table entry */
-    ara_routing_entry_t *entry = routingtable_get_entry(&(address));
-
     if (entry) {
         /* stop the timer */
 
@@ -49,13 +46,13 @@ void ara_routing_table_del_entry(struct netaddr address)
         /* remove the entry from the hash table */
         HASH_DEL(ara_routing_table, entry);
         /* free the entry */
-        free(entry);
+        //free(entry);
     }
 }
 
-struct netaddr *routingtable_get_next_hop(struct netaddr *destination)
+struct netaddr *ara_routing_table_get_next_hop(struct netaddr *destination)
 {
-    ara_routing_entry_t *entry = routingtable_get_entry(destination);
+    ara_routing_entry_t *entry = ara_routing_table_get_entry(destination);
 
     if (!entry) {
         ara_next_hop_t *next_hop = ara_stochastic_forwarding(entry);
@@ -71,12 +68,12 @@ struct netaddr *routingtable_get_next_hop(struct netaddr *destination)
 
 bool ara_routing_table_entry_exists(struct netaddr *destination) 
 {
-    return (routingtable_get_entry(destination) != NULL);
+    return (ara_routing_table_get_entry(destination) != NULL);
 }
 
-ara_routing_entry_t* routingtable_get_entry(struct netaddr *destination)
+ara_routing_entry_t* ara_routing_table_get_entry(struct netaddr *destination)
 {
-    ara_routing_entry_t *result = NULL;
+    ara_routing_entry_t *result;
     HASH_FIND(hh, ara_routing_table, destination, sizeof(struct netaddr), result);
     return result;
 }
@@ -94,14 +91,17 @@ void ara_print_routing_table(void)
 
 void ara_print_routing_table_entry(ara_routing_entry_t *entry)
 {
-    struct netaddr_str nbuf;
-    ara_next_hop_t *element, *temporary_element;
+    if (entry->size > 0) {
+        struct netaddr_str nbuf;
+        ara_next_hop_t *element, *temporary_element;
 
-    printf(".................................\n");
-    printf("\t destination: %s\n", netaddr_to_string(&nbuf, entry->destination));
+        printf(".................................\n");
+        printf("\t destination: %s\n", netaddr_to_string(&nbuf, entry->destination));
 
-    DL_FOREACH_SAFE(entry->next_hops, element, temporary_element) {
-        ara_print_next_hop_entry(element);
+        DL_FOREACH_SAFE(entry->next_hops, element, temporary_element) {
+            ara_print_next_hop_entry(element);
+
+        }
     }
 }
 
@@ -130,10 +130,12 @@ void ara_add_next_hop_entry(ara_routing_entry_t *entry, ara_next_hop_t *next_hop
 
 void ara_routing_table_del_next_hops(ara_routing_entry_t *entry) 
 {
-    ara_next_hop_t *element, *temporary_element;
+    if (entry->size > 0) {
+        ara_next_hop_t *element, *temporary_element;
 
-    DL_FOREACH_SAFE(entry->next_hops, element, temporary_element) {
-        DL_DELETE(entry->next_hops, element); 
+        DL_FOREACH_SAFE(entry->next_hops, element, temporary_element) {
+            DL_DELETE(entry->next_hops, element); 
+        }
     }
 }
 
@@ -152,7 +154,13 @@ ara_next_hop_t *ara_get_next_hop_entry(ara_routing_entry_t *entry, uint8_t posit
         if (current_position == position) {
             return result;
         }
+        current_position++;
     }
 
     return NULL;
+}
+
+uint8_t ara_routing_table_size(void)
+{
+    return HASH_COUNT(ara_routing_table);
 }

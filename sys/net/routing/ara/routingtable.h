@@ -60,26 +60,30 @@ struct ara_routing_entry_s
 
 typedef struct ara_routing_entry_s ara_routing_entry_t;
 
+/**
+ * @brief     Adds a routing entry to the routing table
+ * @param[in] entry The routing table entry which is going to be added
+ */
 void ara_routing_table_add_entry(ara_routing_entry_t *entry);
 
 /**
  * @brief     Returns a next hop for a given destination
  * @param[in] destination The destination address of a route
  */
-struct netaddr *routingtable_get_next_hop(struct netaddr *destination);
+struct netaddr *ara_routing_table_get_next_hop(struct netaddr *destination);
 
 /**
  * @brief     Deletes the routing table entry (if existent) for a given destination 
  * @param[in] destination The destination address of the entry which should be
  * removed 
  */
-void routing_table_del_entry(struct netaddr *address);
+void ara_routing_table_del_entry(ara_routing_entry_t *entry);
 
 /**
  * @brief     Return a routing table entry (if existent) for a given destination 
  * @param[in] destination The destination address of a route
  */
-ara_routing_entry_t *routingtable_get_entry(struct netaddr *destination);
+ara_routing_entry_t *ara_routing_table_get_entry(struct netaddr *destination);
 
 /**
  * @brief     Initializes the routing table.
@@ -110,8 +114,6 @@ void ara_print_next_hop_entry(ara_next_hop_t *entry);
  */
 ara_next_hop_t* ara_get_next_hop_entry(ara_routing_entry_t *entry, uint8_t index);
 
-float ara_get_pheromone_value(ara_routing_entry_t *entry, uint8_t index);
-
 /**
  * @brief     Adds a next hop entry to a given routing table entry
  * @param[in] entry The routing table entry for the next hop 
@@ -119,11 +121,15 @@ float ara_get_pheromone_value(ara_routing_entry_t *entry, uint8_t index);
  */
 void ara_add_next_hop_entry(ara_routing_entry_t *entry, ara_next_hop_t *next_hop);
 
+float ara_get_pheromone_value(ara_routing_entry_t *entry, uint8_t index);
+
 bool ara_routing_table_entry_exists(struct netaddr *destination);
 
 void ara_routing_table_del_next_hops(ara_routing_entry_t *entry);
 
 int ara_next_hop_compare(ara_next_hop_t *first, ara_next_hop_t *second);
+
+uint8_t ara_routing_table_size(void);
 
 #ifdef __cplusplus
 }
