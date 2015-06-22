@@ -121,15 +121,23 @@ ara_next_hop_t* ara_get_next_hop_entry(ara_routing_entry_t *entry, uint8_t index
  */
 void ara_add_next_hop_entry(ara_routing_entry_t *entry, ara_next_hop_t *next_hop);
 
-float ara_get_pheromone_value(ara_routing_entry_t *entry, uint8_t index);
-
+/**
+ * @brief     Checks if a routing table entry for a given destination exists
+ * @param[in] destination The destination address of the routing table entry 
+ */
 bool ara_routing_table_entry_exists(struct netaddr *destination);
+
+/**
+ * @brief     Returns the size of the routing table
+ */
+uint8_t ara_routing_table_size(void);
+
+float ara_get_pheromone_value(ara_routing_entry_t *entry, uint8_t index);
 
 void ara_routing_table_del_next_hops(ara_routing_entry_t *entry);
 
 int ara_next_hop_compare(ara_next_hop_t *first, ara_next_hop_t *second);
 
-uint8_t ara_routing_table_size(void);
 
 #ifdef __cplusplus
 }
