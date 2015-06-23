@@ -71,10 +71,10 @@ bool ara_routing_table_entry_exists(struct netaddr *destination)
     return (ara_routing_table_get_entry(destination) != NULL);
 }
 
-ara_routing_entry_t* ara_routing_table_get_entry(struct netaddr *destination)
+ara_routing_entry_t* ara_routing_table_get_entry(struct netaddr *dest)
 {
     ara_routing_entry_t *result;
-    HASH_FIND(hh, ara_routing_table, destination, sizeof(struct netaddr), result);
+    HASH_FIND(hh, ara_routing_table, dest, sizeof(struct netaddr), result);
     return result;
 }
 
@@ -112,7 +112,7 @@ void ara_print_next_hop_entry(ara_next_hop_t *entry)
     printf("\t\t phi: %f credit: %f ttl: %d\n", entry->phi, entry->credit, entry->ttl);
 }
 
-void ara_add_next_hop_entry(ara_routing_entry_t *entry, ara_next_hop_t *next_hop)
+void ara_routing_table_add_next_hop(ara_routing_entry_t *entry, ara_next_hop_t *next_hop)
 {
     ara_next_hop_t *result;
     DL_SEARCH(entry->next_hops, result, next_hop, ara_next_hop_compare);
@@ -135,6 +135,7 @@ void ara_routing_table_del_next_hops(ara_routing_entry_t *entry)
 
         DL_FOREACH_SAFE(entry->next_hops, element, temporary_element) {
             DL_DELETE(entry->next_hops, element); 
+            entry->size--;
         }
     }
 }

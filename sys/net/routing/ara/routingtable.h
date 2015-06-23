@@ -119,7 +119,7 @@ ara_next_hop_t* ara_get_next_hop_entry(ara_routing_entry_t *entry, uint8_t index
  * @param[in] entry The routing table entry for the next hop 
  * @param[in] next_hop The next hop entry to add
  */
-void ara_add_next_hop_entry(ara_routing_entry_t *entry, ara_next_hop_t *next_hop);
+void ara_routing_table_add_next_hop(ara_routing_entry_t *entry, ara_next_hop_t *next_hop);
 
 /**
  * @brief     Checks if a routing table entry for a given destination exists

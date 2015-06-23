@@ -81,6 +81,74 @@ static void test_ara_routing_table_add_entry(void)
     TEST_ASSERT_EQUAL_INT(false, ara_routing_table_entry_exists(&another_address)); 
 }
 
+static void test_ara_routing_table_add_next_hop(void)
+{
+    ara_routing_entry_t entry; 
+    memset(&entry, 0, sizeof(ara_routing_entry_t));
+
+    struct netaddr address = { {
+            0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+            0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
+        }, AF_INET6, 128
+    };
+
+    struct netaddr next_hop_address = { {
+            0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+            0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
+        }, AF_INET6, 128
+    };
+
+    entry.destination = &address;
+    ara_routing_table_add_entry(&entry);
+
+    ara_next_hop_t next_hop;
+    next_hop.phi = 42.;
+    next_hop.ttl = 23;
+    next_hop.credit = 1.;
+    next_hop.address =  &next_hop_address;
+
+    ara_routing_table_add_next_hop(&entry, &next_hop);
+
+    TEST_ASSERT_EQUAL_INT(1, entry.size); 
+
+    ara_routing_table_del_entry(&entry);
+}
+
+static void test_ara_routing_table_del_next_hops(void)
+{
+    ara_routing_entry_t entry; 
+    memset(&entry, 0, sizeof(ara_routing_entry_t));
+
+    struct netaddr address = { {
+            0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+            0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
+        }, AF_INET6, 128
+    };
+
+    struct netaddr next_hop_address = { {
+            0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+            0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
+        }, AF_INET6, 128
+    };
+
+    entry.destination = &address;
+    ara_routing_table_add_entry(&entry);
+
+    ara_next_hop_t next_hop;
+    next_hop.phi = 42.;
+    next_hop.ttl = 23;
+    next_hop.credit = 1.;
+    next_hop.address =  &next_hop_address;
+
+    ara_routing_table_add_next_hop(&entry, &next_hop);
+
+    TEST_ASSERT_EQUAL_INT(1, entry.size); 
+    ara_routing_table_del_next_hops(&entry);
+
+    TEST_ASSERT_EQUAL_INT(0, entry.size); 
+    ara_routing_table_del_entry(&entry);
+}
+
 static void test_ara_cum_sum(void)
 {
     float input[] = {2.,3.,4.};
@@ -114,6 +182,8 @@ Test *tests_ara_tests(void)
 {
     EMB_UNIT_TESTFIXTURES(fixtures) {
         new_TestFixture(test_ara_cum_sum),
+        new_TestFixture(test_ara_routing_table_add_next_hop),
+        new_TestFixture(test_ara_routing_table_del_next_hops),
         new_TestFixture(test_ara_routing_table_get_entry),
         new_TestFixture(test_ara_routing_table_add_entry),
         new_TestFixture(test_ara_routing_table_initialized)
