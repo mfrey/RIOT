@@ -115,7 +115,7 @@ void ara_print_next_hop_entry(ara_next_hop_t *entry)
 void ara_routing_table_add_next_hop(ara_routing_entry_t *entry, ara_next_hop_t *next_hop)
 {
     ara_next_hop_t *result;
-    DL_SEARCH(entry->next_hops, result, next_hop, ara_next_hop_compare);
+    DL_SEARCH(entry->next_hops, result, next_hop, ara_routing_table_next_hop_compare);
 
     if (!result) {
         DL_APPEND(entry->next_hops, next_hop);
@@ -140,7 +140,7 @@ void ara_routing_table_del_next_hops(ara_routing_entry_t *entry)
     }
 }
 
-int ara_next_hop_compare(ara_next_hop_t *first, ara_next_hop_t *second)
+int ara_routing_table_next_hop_compare(ara_next_hop_t *first, ara_next_hop_t *second)
 {
     return netaddr_cmp(first->address, second->address);
 }

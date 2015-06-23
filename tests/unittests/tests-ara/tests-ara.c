@@ -114,6 +114,33 @@ static void test_ara_routing_table_add_next_hop(void)
     ara_routing_table_del_entry(&entry);
 }
 
+static void test_ara_routing_table_next_hop_compare(void)
+{
+
+    struct netaddr first_next_hop_address = { {
+            0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+            0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
+        }, AF_INET6, 128
+    };
+
+    struct netaddr second_next_hop_address = { {
+            0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+            0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07
+        }, AF_INET6, 128
+    };
+
+    ara_next_hop_t first_next_hop;
+    first_next_hop.address = &first_next_hop_address;
+
+    ara_next_hop_t second_next_hop;
+    second_next_hop.address = &second_next_hop_address;
+
+    TEST_ASSERT_EQUAL_INT(0, ara_routing_table_next_hop_compare(&first_next_hop, &first_next_hop)); 
+    TEST_ASSERT_EQUAL_INT(0, ara_routing_table_next_hop_compare(&second_next_hop, &second_next_hop)); 
+
+    TEST_ASSERT_EQUAL_INT(-1, ara_routing_table_next_hop_compare(&first_next_hop, &second_next_hop)); 
+}
+
 static void test_ara_routing_table_del_next_hops(void)
 {
     ara_routing_entry_t entry; 
@@ -184,6 +211,7 @@ Test *tests_ara_tests(void)
         new_TestFixture(test_ara_cum_sum),
         new_TestFixture(test_ara_routing_table_add_next_hop),
         new_TestFixture(test_ara_routing_table_del_next_hops),
+        new_TestFixture(test_ara_routing_table_next_hop_compare),
         new_TestFixture(test_ara_routing_table_get_entry),
         new_TestFixture(test_ara_routing_table_add_entry),
         new_TestFixture(test_ara_routing_table_initialized)

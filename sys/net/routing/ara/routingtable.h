@@ -132,11 +132,18 @@ bool ara_routing_table_entry_exists(struct netaddr *destination);
  */
 uint8_t ara_routing_table_size(void);
 
-float ara_get_pheromone_value(ara_routing_entry_t *entry, uint8_t index);
-
+/**
+ * @brief     Removes the next hops of a routing table entry 
+ * @param[inout] entry The routing table entry which next hops are going to be
+ * removed
+ */
 void ara_routing_table_del_next_hops(ara_routing_entry_t *entry);
 
-int ara_next_hop_compare(ara_next_hop_t *first, ara_next_hop_t *second);
+
+
+float ara_get_pheromone_value(ara_routing_entry_t *entry, uint8_t index);
+
+int ara_routing_table_next_hop_compare(ara_next_hop_t *first, ara_next_hop_t *second);
 
 
 #ifdef __cplusplus
