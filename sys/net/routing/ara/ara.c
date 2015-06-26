@@ -24,3 +24,30 @@ void ara_init(void)
     /* initialize the probablistic forwarding */
     ara_forwarding_init();
 }
+
+void ara_send_packet(ara_packet_t* packet)
+{
+    if (packet->ttl > 0) {
+        struct netaddr* destination = packet->destination;
+
+        if (ara_is_route_discovery_running(destination)) {
+
+        } else if(ara_is_deliverable(destination)) {
+
+        }
+    /* handle packet with zero ttl  */
+    } else {
+
+
+    }
+}
+
+bool ara_is_route_discovery_running(struct netaddr* destination)
+{
+    return false;
+}
+
+bool ara_is_deliverable(struct netaddr* destination)
+{
+    return false;
+}

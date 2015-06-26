@@ -19,6 +19,8 @@
 #ifndef ARA_H_
 #define ARA_H_
 
+#include "stdbool.h"
+#include "packet.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -26,6 +28,15 @@ extern "C" {
 
 void ara_init(void);
 
+void ara_send_packet(ara_packet_t* packet);
+
+/*
+void ara_receive_packet();
+*/
+
+bool ara_is_route_discovery_running(struct netaddr* destination);
+
+bool ara_is_deliverable(struct netaddr* destination);
 
 #ifdef  __cplusplus
 }
