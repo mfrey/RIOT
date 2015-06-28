@@ -20,6 +20,7 @@
 #define ARA_PACKET_H_
 
 #include "stdint.h"
+#include "stdbool.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -42,6 +43,17 @@ struct ara_packet_s
 };
 
 typedef struct ara_packet_s ara_packet_t;
+
+inline bool ara_packet_is_ant_packet(char type)
+{
+    switch (type) {
+        case FANT: 
+        case BANT:
+            return true;
+        default: 
+            return false; 
+    }
+}
 
 /*
 void ara_packets_initialize(uint8_t max_hop_count);

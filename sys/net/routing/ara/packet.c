@@ -21,9 +21,14 @@
 const char* ara_packet_get_type_as_string(char type)
 {
     switch (type) {
-        case DATA: return "DATA\0";
-        case FANT: return "FANT\0";
-        case BANT: return "BANT\0";
-        default: return "UNKNOWN\0";
+        case DATA: 
+            return "DATA\0";
+        case FANT: 
+            return "FANT\0";
+        case BANT: 
+            return "BANT\0";
+        default: 
+            return "UNKNOWN\0";
     }
 }
+
