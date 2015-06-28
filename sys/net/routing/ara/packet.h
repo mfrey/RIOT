@@ -34,7 +34,7 @@ typedef enum
 
 struct ara_packet_s 
 {
-    ara_packet_type type;         /**< type of the packet */
+    char type;                    /**< type of the packet */
     uint8_t seq_nr;               /**< sequence number */
     struct netaddr *source;       /**< source address of the packet address */
     struct netaddr *destination;  /**< destination address of the packet */
@@ -52,6 +52,8 @@ void ara_packets_make_backward_ant_agent();
 
 void ara_packets_make_clone();
 */
+
+const char* ara_packet_get_type_as_string(char type);
 
 #ifdef __cplusplus
 }
