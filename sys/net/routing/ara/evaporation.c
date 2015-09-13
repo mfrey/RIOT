@@ -17,6 +17,8 @@
  */
 #include "evaporation.h"
 
+#include <math.h>
+
 static unsigned int time_interval = 0;
 static float threshold = .0;
 static float evaporation_factor = .0;
