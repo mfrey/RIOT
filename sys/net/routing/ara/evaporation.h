@@ -67,4 +67,4 @@ float ara_evaporation_exponential(float old_pheromone_value, int milliseconds_si
 }
 #endif
 
-#endif /* ARA_FORWARDING_H_*/
+#endif /* ARA_EVAPORATION_H_*/
