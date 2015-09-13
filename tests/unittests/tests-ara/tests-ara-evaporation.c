@@ -5,8 +5,7 @@
  * General Public License v2.1. See the file LICENSE in the top level
  * directory for more details.
  */
-#include "embUnit.h"
-
+#include "tests-ara.h"
 #include "tests-ara-helper.h"
 
 #include "net/routing/ara/evaporation.h"
@@ -65,7 +64,7 @@ static void test_ara_evaporation_exponential(void)
     float pheromone = 1;
 
     /* nothing should happen if no time has passed */
-    pheromone = ara_evaporation_exponential(pheromone, timeIntervalInMillis);
+    pheromone = ara_evaporation_exponential(pheromone, 0);
     TEST_ASSERT(approximately_equal(1.0, pheromone, 0.00001) == true);
 
     /* first exponential evaporation */
@@ -125,4 +124,20 @@ static void test_ara_evaporation_exponential_sequential_vs_continuous_evaporatio
     }
 
     TEST_ASSERT(approximately_equal(evaporationInOneStep, evaporationInMultipleSteps, 0.00001) == true);
+}
+
+Test *tests_ara_evaporation_tests(void)
+{
+    EMB_UNIT_TESTFIXTURES(fixtures) {
+        new_TestFixture(test_ara_evaporation_linear),
+        new_TestFixture(test_ara_evaporation_linear_with_zero_time_interval),
+        new_TestFixture(test_ara_evaporation_exponential),
+        new_TestFixture(test_ara_evaporation_exponential_with_zero_time_interval),
+        new_TestFixture(test_ara_evaporation_exponential_partial_evaporation),
+        new_TestFixture(test_ara_evaporation_exponential_sequential_vs_continuous_evaporation)
+    };
+
+    EMB_UNIT_TESTCALLER(ara_evaporation_tests, NULL, NULL, fixtures);
+
+    return (Test *)&ara_evaporation_tests;
 }

@@ -34,6 +34,13 @@ extern "C" {
 void tests_ara(void);
 
 /**
+ * @brief   Generates tests for the evaporation functions of ARA
+ *
+ * @return  embUnit tests if successful, NULL if not.
+ */
+Test *tests_ara_evaporation_tests(void);
+
+/**
  * @brief   Generates tests for ARA
  *
  * @return  embUnit tests if successful, NULL if not.

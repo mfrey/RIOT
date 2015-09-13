@@ -8,6 +8,16 @@
 
 #include "tests-ara.h"
 
+static void ara_set_up(void)
+{
+
+}
+
+static void ara_tear_down(void)
+{
+    ara_routing_table_clear();
+}
+
 static void test_ara_routing_table_initialized(void)
 {
     /*
@@ -114,9 +124,47 @@ static void test_ara_routing_table_add_next_hop(void)
     ara_routing_table_del_entry(&entry);
 }
 
+static void test_ara_routing_table_is_deliverable(void)
+{
+    ara_next_hop_t next_hop;
+    ara_routing_entry_t entry; 
+
+    struct netaddr address = { {
+            0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+            0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07
+        }, AF_INET6, 128
+    };
+
+
+    struct netaddr next_hop_address = { {
+            0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+            0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
+        }, AF_INET6, 128
+    };
+
+    memset(&entry, 0, sizeof(ara_routing_entry_t));
+
+    next_hop.address = &next_hop_address;
+    entry.destination = &address;
+
+    /* no entry and hence not deliverable */
+    TEST_ASSERT_EQUAL_INT(false, ara_routing_table_is_deliverable(&address)); 
+
+    /* we've added the entry, but no next hops */
+    /*
+    */
+    ara_routing_table_add_entry(&entry);
+    TEST_ASSERT_EQUAL_INT(false, ara_routing_table_is_deliverable(&address)); 
+
+    //ara_routing_table_add_next_hop(&entry, &next_hop);
+
+    /* we've added an next hop, so packets to that destination should be
+     * deliverbale  */
+    TEST_ASSERT_EQUAL_INT(true, ara_routing_table_is_deliverable(&address)); 
+}
+
 static void test_ara_routing_table_next_hop_compare(void)
 {
-
     struct netaddr first_next_hop_address = { {
             0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
             0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
@@ -211,18 +259,20 @@ Test *tests_ara_tests(void)
         new_TestFixture(test_ara_cum_sum),
         new_TestFixture(test_ara_routing_table_add_next_hop),
         new_TestFixture(test_ara_routing_table_del_next_hops),
+        new_TestFixture(test_ara_routing_table_is_deliverable),
         new_TestFixture(test_ara_routing_table_next_hop_compare),
         new_TestFixture(test_ara_routing_table_get_entry),
         new_TestFixture(test_ara_routing_table_add_entry),
         new_TestFixture(test_ara_routing_table_initialized)
     };
 
-    EMB_UNIT_TESTCALLER(ara_tests, NULL, NULL, fixtures);
+    EMB_UNIT_TESTCALLER(ara_tests, ara_set_up, ara_tear_down, fixtures);
 
     return (Test *)&ara_tests;
 }
 
 void tests_ara(void)
 {
-    TESTS_RUN(tests_ara_tests());
+//    TESTS_RUN(tests_ara_tests());
+    TESTS_RUN(tests_ara_evaporation_tests());
 }
