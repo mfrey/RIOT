@@ -41,6 +41,13 @@ void tests_ara(void);
 Test *tests_ara_evaporation_tests(void);
 
 /**
+ * @brief   Generates tests for the reinforcement functions of ARA
+ *
+ * @return  embUnit tests if successful, NULL if not.
+ */
+Test *tests_ara_reinforcement_tests(void);
+
+/**
  * @brief   Generates tests for ARA
  *
  * @return  embUnit tests if successful, NULL if not.
