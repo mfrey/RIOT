@@ -16,7 +16,7 @@
  * @author      Michael Frey <frey@informatik.hu-berlin.de>
  */
 
-#ifndef ARA_FORWARDING_H__
+#ifndef ARA_FORWARDING_H_
 #define ARA_FORWARDING_H_
 
 #include "helper.h"
