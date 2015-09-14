@@ -8,8 +8,6 @@
 #include "tests-ara.h"
 #include "tests-ara-helper.h"
 
-#include <stdio.h>
-
 #include "net/routing/ara/reinforcement.h"
 
 
