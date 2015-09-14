@@ -25,7 +25,7 @@ extern "C" {
 
 void ara_reinforcement_init(float delta_phi);
 
-float ara_reinforcment_linear_compute(float value);
+float ara_reinforcement_linear_compute(float value);
 
 #ifdef __cplusplus
 }

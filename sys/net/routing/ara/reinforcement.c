@@ -19,14 +19,14 @@
 
 #include "reinforcement.h"
 
-static float delta = .0;
+static float delta = 0.;
 
 void ara_reinforcement_init(float delta_phi)
 {
     delta = delta_phi;
 }
 
-float ara_reinforcment_linear_compute(float old_pheromone_value)
+float ara_reinforcement_linear_compute(float old_pheromone_value)
 {
-    return (old_pheromone_value + delta);
+    return old_pheromone_value + delta;
 }
