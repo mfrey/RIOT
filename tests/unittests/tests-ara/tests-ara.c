@@ -275,4 +275,5 @@ void tests_ara(void)
 {
 //    TESTS_RUN(tests_ara_tests());
     TESTS_RUN(tests_ara_evaporation_tests());
+    TESTS_RUN(tests_ara_reinforcement_tests());
 }
