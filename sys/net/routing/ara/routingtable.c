@@ -33,6 +33,8 @@ uint64_t last_access_time;
 void ara_routing_table_init(void) 
 {
     last_access_time = 0;
+    // TODO: make this dependent from the user (if/else + defines)
+    ara_routing_table_evaporate = ara_evaporation_exponential;
 }
 
 void ara_routing_table_clear(void)
@@ -313,7 +315,7 @@ void ara_routing_table_trigger_evaporation(void)
         ara_routing_table_apply_evaporation(current_time);
     }
 }
-    
+
 void ara_routing_table_apply_evaporation(uint64_t current_time)
 {
     uint64_t difference = current_time - last_access_time;
@@ -332,7 +334,7 @@ void ara_routing_table_apply_evaporation(uint64_t current_time)
             /* update every next hop entry */
             DL_FOREACH_SAFE(entry->next_hops, next_hop, temporary_next_hop) {
                 // TODO second parameter
-                next_hop->phi = ara_evaporation_evaporate(next_hop->phi, 0);
+                next_hop->phi = ara_routing_table_evaporate(next_hop->phi, 0);
 
                 /* the route over this next hop evaporated */
                 if (next_hop->phi == 0) {
