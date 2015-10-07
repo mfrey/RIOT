@@ -21,19 +21,18 @@
 #include "evaporation.h"
 #include "routingtable.h"
 
-#include <vtimer.h>
+#include "xtimer.h"
 
 /***
  *
  */
 static ara_routing_entry_t* ara_routing_table = NULL;
 
-static timex_t null_time, last_access_time;
+uint64_t last_access_time;
 
 void ara_routing_table_init(void) 
 {
-    null_time = timex_set(1, 0);
-    last_access_time = null_time;
+    last_access_time = 0;
 }
 
 void ara_routing_table_clear(void)
@@ -304,26 +303,24 @@ ara_next_hop_t* ara_routing_table_create_next_hop(struct netaddr* address, float
 
 void ara_routing_table_trigger_evaporation(void)
 {
-    timex_t current_time;
     /* get the current time */
-    vtimer_now(&current_time);
+    uint64_t current_time = xtimer_now64();
 
     /* we access the routing table for the first time */
-    if (timex_cmp(last_access_time, null_time)) {
+    if (last_access_time == 0) {
         last_access_time = current_time;
     } else {
         ara_routing_table_apply_evaporation(current_time);
     }
 }
     
-void ara_routing_table_apply_evaporation(timex_t current_time)
+void ara_routing_table_apply_evaporation(uint64_t current_time)
 {
-    timex_t difference = timex_sub(current_time, last_access_time);
+    uint64_t difference = current_time - last_access_time;
 
-    // TODO
-    //if (ara_time_within_interval(difference, ARA_EVAPORATION_INTERVAL)) {
     /* is it already time to update the entries */
-    if (ara_time_within_interval(difference, 0)) {
+    //if (difference >=  ARA_EVAPORATION_INTERVAL) {
+    if (difference >=  10) {
         ara_routing_entry_t *entry, *tmp; 
         /**
          * for every destination we are going to update the pheromone values of

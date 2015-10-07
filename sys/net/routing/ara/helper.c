@@ -28,10 +28,3 @@ void ara_cum_sum(float* input, float* output, uint8_t size)
         }
     }
 }
-
-// TODO, think about it 
-bool ara_time_within_interval(timex_t timestamp, uint64_t interval_in_microseconds)
-{
-    // TODO
-    return false;
-}

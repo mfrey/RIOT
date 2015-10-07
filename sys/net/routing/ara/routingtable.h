@@ -23,7 +23,6 @@
 #include "utlist.h"
 #include "constants.h"
 
-#include <timex.h>
 #include "common/netaddr.h"
 
 #ifdef __cplusplus
@@ -52,7 +51,7 @@ typedef struct ara_next_hop_s ara_next_hop_t;
 struct ara_routing_entry_s
 {
     struct netaddr* destination; /**< destination address */
-    timex_t lastAccessTime;      /**< last access time of the routing table entry */
+    uint64_t last_access_time;   /**< last access time of the routing table entry */
     ara_next_hop_t* next_hops;   /**< list of all potential next hops */
     uint8_t size;                /**< size of the next hop list */
     UT_hash_handle hh;
@@ -171,7 +170,7 @@ void ara_routing_table_trigger_evaporation(void);
  * next hop list
  * @param[in] timestamp The time at which the evaporation process was triggered
  */
-void ara_routing_table_apply_evaporation(timex_t timestamp);
+void ara_routing_table_apply_evaporation(uint64_t timestamp);
 
 ara_next_hop_t* ara_routing_table_create_next_hop(struct netaddr* address, float pheromone_value);
 
