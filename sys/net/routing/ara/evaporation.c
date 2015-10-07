@@ -31,6 +31,13 @@ void ara_evaporation_init(float factor, float pheromone_threshold, unsigned int 
 
 }
 
+float ara_evaporation_evaporate(float old_pheromone_value, int milliseconds_since_last_evaporation)
+{
+    // todo
+    return 0.;
+}
+
+
 float ara_evaporation_linear(float old_pheromone_value, int milliseconds_since_last_evaporation)
 {
     if (milliseconds_since_last_evaporation == 0) {
