@@ -41,12 +41,6 @@ extern "C" {
  */
 void ara_evaporation_init(float evaporation_factor, float threshold, unsigned int time_interval_millis);
 
-
-
-float ara_evaporation_evaporate(float old_pheromone_value, int milliseconds_since_last_evaporation);
-
-
-
 /**
  * The method evaporates pheromones in a linear fashion. This means that
  * pheromones evaporate as follows:
