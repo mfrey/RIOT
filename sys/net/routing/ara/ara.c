@@ -37,6 +37,8 @@ kernel_pid_t ara_init(void)
     }
     /* initialize the probablistic forwarding */
     ara_forwarding_init();
+    /* set the reinforcement to the linear reinforcement function */
+    ara_reinforce = ara_reinforcement_linear_compute;
 
     return ara_pid;
 }
@@ -134,12 +136,10 @@ ara_next_hop_t* ara_get_next_hop(struct netaddr* destination)
 
 void ara_reinforce_pheromone(struct netaddr* next_hop, struct netaddr* destination, void* interface)
 {
-    /* 
     float current_value = ara_routing_table_get_pheromone_value(destination, next_hop);
-    float new_pheromone_value = ara_reinforcement_linear_compute(current_pheromone_value);
-    ara_routing_table_update(destination, next_hop, interface, new_pheromone_value);
+    float new_pheromone_value = ara_reinforce(current_pheromone_value);
+//    ara_routing_table_update(destination, next_hop, interface, new_pheromone_value);
     return new_pheromone_value;
-     */
 }
 
 

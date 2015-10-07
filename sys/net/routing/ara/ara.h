@@ -104,6 +104,8 @@ ara_next_hop_t* ara_get_next_hop(struct netaddr* destination);
 
 void ara_reinforce_pheromone(struct netaddr* next_hop, struct netaddr* destination, void* interface);
 
+float (*ara_reinforce)(float value);
+
 #ifdef  __cplusplus
 }
 #endif
