@@ -20,6 +20,8 @@
 #define ARA_HELPER_H_
 
 #include "stdint.h"
+#include "stdbool.h"
+#include "timex.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -33,6 +35,8 @@ extern "C" {
  * @param[in] size The size of the array
  */
 void ara_cum_sum(float* input, float* output, uint8_t size);
+
+bool ara_time_within_interval(timex_t timestamp, uint64_t interval_in_microseconds);
 
 #ifdef __cplusplus
 }
