@@ -139,12 +139,41 @@ uint8_t ara_routing_table_size(void);
  */
 void ara_routing_table_del_next_hops(ara_routing_entry_t *entry);
 
+/**
+ * @brief     Checks if a destination has next hops 
+ * @param[in] destination The destination address which is going to be checked
+ * @return    True if a destination has next hops and hence a packet can
+ * be delivered, otherweise false
+ */
+bool ara_routing_table_is_deliverable(struct netaddr* destination);
 
-
-float ara_get_pheromone_value(ara_routing_entry_t *entry, uint8_t index);
+// TODO
+ara_next_hop_t *ara_get_next_hop_entry(ara_routing_entry_t *entry, uint8_t position);
 
 int ara_routing_table_next_hop_compare(ara_next_hop_t *first, ara_next_hop_t *second);
 
+void ara_routing_table_clear(void);
+
+float ara_routing_table_get_pheromone_value(struct netaddr* destination, struct netaddr* next_hop);
+// TODO
+ara_next_hop_t* ara_routing_table_get_next_hop_entry(struct netaddr* destination, struct netaddr* next_hop);
+
+void ara_routing_table_update(struct netaddr* destination, struct netaddr* next_hop, void* interface, float new_pheromone_value);
+
+/**
+ * @brief The function triggers the evaporation process, iff enough time has
+ * passed
+ */
+void ara_routing_table_trigger_evaporation(void);
+
+/**
+ * @brief The function updates for every destination the pheromone values of the
+ * next hop list
+ * @param[in] timestamp The time at which the evaporation process was triggered
+ */
+void ara_routing_table_apply_evaporation(timex_t timestamp);
+
+ara_next_hop_t* ara_routing_table_create_next_hop(struct netaddr* address, float pheromone_value);
 
 #ifdef __cplusplus
 }

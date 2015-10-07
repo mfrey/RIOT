@@ -16,17 +16,38 @@
  * @author      Michael Frey <frey@informatik.hu-berlin.de>
  */
 
+#include "ara.h"
 #include "forwarding.h"
+#include "evaporation.h"
 #include "routingtable.h"
+
+#include <vtimer.h>
 
 /***
  *
  */
 static ara_routing_entry_t* ara_routing_table = NULL;
 
+static timex_t null_time, last_access_time;
+
 void ara_routing_table_init(void) 
 {
-    //
+    null_time = timex_set(1, 0);
+    last_access_time = null_time;
+}
+
+void ara_routing_table_clear(void)
+{
+    ara_routing_entry_t *entry, *tmp; 
+
+    HASH_ITER(hh, ara_routing_table, entry, tmp) {
+        /* delete items from the next hop list */
+        ara_routing_table_del_next_hops(entry);
+        /* delete the actual entry */
+        HASH_DEL(ara_routing_table, entry);
+        /* free the entry */
+        // free(entry);
+    }
 }
 
 void ara_routing_table_add_entry(ara_routing_entry_t *entry)
@@ -66,6 +87,19 @@ struct netaddr *ara_routing_table_get_next_hop(struct netaddr *destination)
     return NULL;
 }
 
+bool ara_routing_table_is_deliverable(struct netaddr* destination)
+{
+    ara_routing_entry_t *entry = NULL;
+
+    if((entry = ara_routing_table_get_entry(destination)) != NULL){
+        /* there are actually next hops available */
+        return entry->size > 0;
+    }
+
+    return false;
+}
+
+
 bool ara_routing_table_entry_exists(struct netaddr *destination) 
 {
     return (ara_routing_table_get_entry(destination) != NULL);
@@ -73,7 +107,7 @@ bool ara_routing_table_entry_exists(struct netaddr *destination)
 
 ara_routing_entry_t* ara_routing_table_get_entry(struct netaddr *dest)
 {
-    ara_routing_entry_t *result;
+    ara_routing_entry_t *result = NULL;
     HASH_FIND(hh, ara_routing_table, dest, sizeof(struct netaddr), result);
     return result;
 }
@@ -164,4 +198,161 @@ ara_next_hop_t *ara_get_next_hop_entry(ara_routing_entry_t *entry, uint8_t posit
 uint8_t ara_routing_table_size(void)
 {
     return HASH_COUNT(ara_routing_table);
+}
+
+float ara_routing_table_get_pheromone_value(struct netaddr* destination, struct netaddr* next_hop)
+{
+    float result = 0.;
+    ara_next_hop_t* entry = ara_routing_table_get_next_hop_entry(destination, next_hop);
+
+    if (entry) {
+        result = entry->phi;
+    } else {
+#if ENABLE_DEBUG
+        struct netaddr_str buf;
+        printf("there is no such next hop %s\n", netaddr_to_string(&buf, next_hop));
+#endif
+    }
+
+    return result;
+}
+
+ara_next_hop_t* ara_routing_table_get_next_hop_entry(struct netaddr* destination, struct netaddr* next_hop)
+{
+    ara_next_hop_t *result = NULL;
+    ara_routing_entry_t* entry = ara_routing_table_get_entry(destination);
+
+    if (entry) {
+//        DL_SEARCH(entry->next_hops, result, next_hop, ara_routing_table_next_hop_compare);
+    } else {
+#if ENABLE_DEBUG
+        struct netaddr_str buf;
+        printf("there is no such entry for destination address %s\n", netaddr_to_string(&buf, destination));
+#endif
+    }
+
+    return result;
+}
+
+void ara_routing_table_update(struct netaddr* destination, struct netaddr* next_hop, void* interface, float new_pheromone_value)
+{
+    /* check if there is such an entry for the destination */
+    ara_routing_entry_t* entry = ara_routing_table_get_entry(destination);
+
+    /* there is already an entry for the destination */
+    if (entry) {
+        ara_next_hop_t *result = NULL;
+        /* is the entry in the next hop list */
+        DL_SEARCH(entry->next_hops, result, next_hop, ara_routing_table_next_hop_compare);
+
+        if(result){
+            result->phi = new_pheromone_value;
+        /* create a new next hop entry */
+        } else {
+            /* create a new next hop */
+            ara_next_hop_t* next_hop_entry = ara_routing_table_create_next_hop(next_hop, new_pheromone_value);
+
+            if (next_hop_entry != NULL) {
+                entry->next_hops = next_hop_entry;
+            }
+        }
+    /* if there is no such entry */
+    } else {
+        entry = malloc(sizeof(ara_routing_entry_t));
+
+        if (entry) { 
+            /* create a new next hop */
+            ara_next_hop_t* next_hop_entry = ara_routing_table_create_next_hop(next_hop, new_pheromone_value);
+
+            /* TODO: check if parameters are an issue */
+            if (next_hop) {
+                /* set the destination */ 
+                entry->destination = destination; 
+                /* set the next hop list to the newly created element */
+                entry->next_hops = next_hop_entry;
+                
+                HASH_ADD_KEYPTR(hh, ara_routing_table, entry->destination, sizeof(struct netaddr), entry);
+            } else {
+                /* the allocation of the next hop list failed */
+                free(entry);
+            }
+        } else {
+#if ENABLE_DEBUG
+            struct netaddr_str buf;
+            printf("could not create routing table entry for destination address %s\n", netaddr_to_string(&buf, destination));
+#endif 
+        }
+    } 
+}
+
+ara_next_hop_t* ara_routing_table_create_next_hop(struct netaddr* address, float pheromone_value) {
+    ara_next_hop_t* result = malloc(sizeof(ara_next_hop_t));
+
+    if (result) {
+        result->address = address;
+        result->phi = pheromone_value;
+    } else {
+#if ENABLE_DEBUG
+        struct netaddr_str buf;
+        printf("could not create next hop entry for address %s\n", netaddr_to_string(&buf, address));
+#endif 
+    }
+
+    return result;
+}
+
+
+void ara_routing_table_trigger_evaporation(void)
+{
+    timex_t current_time;
+    /* get the current time */
+    vtimer_now(&current_time);
+
+    /* we access the routing table for the first time */
+    if (timex_cmp(last_access_time, null_time)) {
+        last_access_time = current_time;
+    } else {
+        ara_routing_table_apply_evaporation(current_time);
+    }
+}
+    
+void ara_routing_table_apply_evaporation(timex_t current_time)
+{
+    timex_t difference = timex_sub(current_time, last_access_time);
+
+    // TODO
+    //if (ara_time_within_interval(difference, ARA_EVAPORATION_INTERVAL)) {
+    /* is it already time to update the entries */
+    if (ara_time_within_interval(difference, 0)) {
+        ara_routing_entry_t *entry, *tmp; 
+        /**
+         * for every destination we are going to update the pheromone values of
+         * very next hop
+         */
+        HASH_ITER(hh, ara_routing_table, entry, tmp) {
+            ara_next_hop_t *next_hop, *temporary_next_hop;
+
+            /* update every next hop entry */
+            DL_FOREACH_SAFE(entry->next_hops, next_hop, temporary_next_hop) {
+                // TODO second parameter
+                next_hop->phi = ara_evaporation_evaporate(next_hop->phi, 0);
+
+                /* the route over this next hop evaporated */
+                if (next_hop->phi == 0) {
+                    /* erase the entry */
+                    DL_DELETE(entry->next_hops, next_hop);
+                }
+            }
+
+            int next_hop_list_size = 0;
+            DL_COUNT(entry->next_hops, next_hop, next_hop_list_size);
+
+            if (next_hop_list_size > 0) {
+                /* erase the next hop list */
+                DL_DELETE(entry->next_hops, next_hop);
+                /* erase the entry in the routing table */
+                HASH_DEL(ara_routing_table, entry);
+            }
+        }
+    }
 }
