@@ -6,19 +6,18 @@
  * directory for more details.
  */
 #include "tests-ara.h"
-#include "tests-ara-helper.h"
+#include "tests-ara-util.h"
 
 #include "net/routing/ara/evaporation.h"
 
-//#include "tests-ara-evaporation.h"
-
 static void test_ara_evaporation_linear(void)
 {
+    uint8_t type = 0;
     float evaporationFactor = 0.25;
     float threshold = 0.75;
-    unsigned int timeIntervalInMillis = 2000;
+    uint16_t timeIntervalInMillis = 2000;
 
-    ara_evaporation_init(evaporationFactor, threshold, timeIntervalInMillis);
+    ara_evaporation_init(evaporationFactor, threshold, timeIntervalInMillis, type);
 
     float pheromone = 1.5;
 
@@ -42,10 +41,12 @@ static void test_ara_evaporation_linear(void)
 
 static void test_ara_evaporation_linear_with_zero_time_interval(void)
 {
+    uint8_t type = 0;
     float evaporationFactor = 0.25;
     float threshold = 0.75;
+    uint16_t timeIntervalInMillis = 1000;
 
-    ara_evaporation_init(evaporationFactor, threshold, 1000);
+    ara_evaporation_init(evaporationFactor, threshold, timeIntervalInMillis , type);
 
     float pheromone = 10;
 
@@ -55,11 +56,12 @@ static void test_ara_evaporation_linear_with_zero_time_interval(void)
 
 static void test_ara_evaporation_exponential(void)
 {
+    uint8_t type = 1;
     float evaporationFactor = 0.9;
     float threshold = 0.75;
-    unsigned int timeIntervalInMillis = 2000;
+    uint16_t timeIntervalInMillis = 2000;
 
-    ara_evaporation_init(evaporationFactor, threshold, timeIntervalInMillis);
+    ara_evaporation_init(evaporationFactor, threshold, timeIntervalInMillis, type);
 
     float pheromone = 1;
 
@@ -82,11 +84,12 @@ static void test_ara_evaporation_exponential(void)
 
 static void test_ara_evaporation_exponential_with_zero_time_interval(void)
 {
+    uint8_t type = 1;
     float evaporationFactor = 0.9;
     float threshold = 0.75;
     unsigned int timeIntervalInMillis = 2000;
 
-    ara_evaporation_init(evaporationFactor, threshold, timeIntervalInMillis);
+    ara_evaporation_init(evaporationFactor, threshold, timeIntervalInMillis, type);
 
     float pheromone = 10;
 
@@ -96,24 +99,28 @@ static void test_ara_evaporation_exponential_with_zero_time_interval(void)
 
 static void test_ara_evaporation_exponential_partial_evaporation(void)
 {
+    uint8_t type = 1;
     float evaporationFactor = 0.9;
     float threshold = 0.75;
-    unsigned int timeIntervalInMillis = 1000;
+    uint16_t timeIntervalInMillis = 1000;
 
-    ara_evaporation_init(evaporationFactor, threshold, timeIntervalInMillis);
+    ara_evaporation_init(evaporationFactor, threshold, timeIntervalInMillis, type);
 
     float pheromone = 10;
-    pheromone = ara_evaporation_exponential(pheromone, 500);
+    uint16_t time_since_last_evaporation = 500;
+
+    pheromone = ara_evaporation_exponential(pheromone, time_since_last_evaporation);
     TEST_ASSERT(approximately_equal(10 * pow(evaporationFactor, 0.5), pheromone, 0.00001) == true);
 }
 
 static void test_ara_evaporation_exponential_sequential_vs_continuous_evaporation(void) 
 {
+    uint8_t type = 1;
     float evaporationFactor = 0.7;
     float threshold = 1;
     unsigned int timeIntervalInMillis = 1000;
 
-    ara_evaporation_init(evaporationFactor, threshold, timeIntervalInMillis);
+    ara_evaporation_init(evaporationFactor, threshold, timeIntervalInMillis, type);
 
     float originalPheromone = 123;
     float evaporationInOneStep = ara_evaporation_exponential(originalPheromone, 10 * timeIntervalInMillis);
