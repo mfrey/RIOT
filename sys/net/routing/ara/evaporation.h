@@ -19,6 +19,7 @@
 #ifndef ARA_EVAPORATION_H_
 #define ARA_EVAPORATION_H_
 
+#include "stdint.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -39,7 +40,7 @@ extern "C" {
  * @param[in] threshold The threshold denotes the smallest allowed pheromone 
  * value before it is set to 0
  */
-void ara_evaporation_init(float evaporation_factor, float threshold, unsigned int time_interval_millis);
+void ara_evaporation_init(float evaporation_factor, float threshold, uint16_t time_interval_millis, uint8_t type);
 
 /**
  * The method evaporates pheromones in a linear fashion. This means that
@@ -58,10 +59,9 @@ void ara_evaporation_init(float evaporation_factor, float threshold, unsigned in
  * @return The new pheromone value after the evaporation function has beend
  * applied.
  */
-float ara_evaporation_linear(float old_pheromone_value, int milliseconds_since_last_evaporation);
+float ara_evaporation_linear(float old_pheromone_value, uint16_t milliseconds_since_last_evaporation);
 
-
-float ara_evaporation_exponential(float old_pheromone_value, int milliseconds_since_last_evaporation);
+float ara_evaporation_exponential(float old_pheromone_value, uint16_t milliseconds_since_last_evaporation);
 
 #ifdef __cplusplus
 }
