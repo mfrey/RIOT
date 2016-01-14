@@ -211,12 +211,57 @@ static void test_ara_routing_table_next_hop_compare(void)
     TEST_ASSERT_EQUAL_INT(-1, ara_routing_table_next_hop_compare(&first_next_hop, &second_next_hop)); 
 }
 
+static void test_ara_routing_table_update(void)
+{
+    ara_next_hop_t next_hop;
+
+    ara_routing_entry_t entry; 
+    ara_routing_entry_t* temp_entry; 
+    memset(&entry, 0, sizeof(ara_routing_entry_t));
+
+    struct netaddr address = { {
+            0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+            0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07
+        }, AF_INET6, 128
+    };
+
+    struct netaddr next_hop_address = { {
+            0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+            0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
+        }, AF_INET6, 128
+    };
+
+    next_hop.address = &next_hop_address;
+    next_hop.phi = 42.;
+    next_hop.ttl = 23;
+    next_hop.credit = 1.;
+    entry.destination = &address;
+
+    ara_routing_table_add_entry(&entry);
+    ara_routing_table_add_next_hop(&entry, &next_hop);
+
+    /** fetch the entry and check the phi value */
+    temp_entry = ara_routing_table_get_entry(&address);
+    /** phi should be the old value */
+    TEST_ASSERT_EQUAL_INT(42, temp_entry->next_hops->phi); 
+    /** let's update the entry to a new value */
+    ara_routing_table_update(&address, &next_hop_address, 23);
+
+    /** again, fetch the entry and check the phi value */
+    temp_entry = ara_routing_table_get_entry(&address);
+    /** phi should be the new value */
+    TEST_ASSERT_EQUAL_INT(23, temp_entry->next_hops->phi); 
+
+    ara_routing_table_del_entry(&entry);
+}
+
 
 Test *tests_ara_routingtable_tests(void)
 {
     EMB_UNIT_TESTFIXTURES(fixtures) {
         new_TestFixture(test_ara_routing_table_add_entry),
         new_TestFixture(test_ara_routing_table_get_entry),
+        new_TestFixture(test_ara_routing_table_update),
         new_TestFixture(test_ara_routing_table_add_next_hop),
         new_TestFixture(test_ara_routing_table_del_next_hops),
         new_TestFixture(test_ara_routing_table_is_deliverable),
