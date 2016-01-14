@@ -10,13 +10,13 @@
  * @addtogroup  unittests
  * @{
  *
- * @file        tests-ara-heler.h
+ * @file        tests-ara-util.h
  * @brief       Helper functions for the tests for the ``ara`` module
  *
  * @author      Michael Frey <frey@informatik.hu-berlin.de>
  */
-#ifndef TESTS_ARA_HELPER_H_
-#define TESTS_ARA_HELPER_H_
+#ifndef TESTS_ARA_UTIL_H_
+#define TESTS_ARA_UTIL_H_
 
 #include "embUnit.h"
 
@@ -33,5 +33,5 @@ bool approximately_equal(float a, float b, float epsilon);
 }
 #endif
 
-#endif /* TESTS_ARA_HELPER_H_ */
+#endif /* TESTS_ARA_UTIL_H_ */
 /** @} */
