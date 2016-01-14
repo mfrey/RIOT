@@ -6,7 +6,7 @@
  * directory for more details.
  */
 
-#include "tests-ara-helper.h"
+#include "tests-ara-util.h"
 
 bool approximately_equal(float a, float b, float epsilon)
 {
