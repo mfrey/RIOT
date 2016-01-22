@@ -28,7 +28,7 @@
  */
 static ara_routing_entry_t* ara_routing_table = NULL;
 
-float (*ara_routing_table_evaporate)(float old_pheromone_value, uint8_t milliseconds_since_last_evaporation);
+float (*ara_routing_table_evaporate)(float old_pheromone_value, uint64_t milliseconds_since_last_evaporation);
 
 uint64_t last_access_time;
 

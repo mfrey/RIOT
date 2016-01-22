@@ -175,7 +175,7 @@ void ara_routing_table_apply_evaporation(uint64_t timestamp);
 
 ara_next_hop_t* ara_routing_table_create_next_hop(struct netaddr* address, float pheromone_value);
 
-extern float (*ara_routing_table_evaporate)(float old_pheromone_value, uint8_t milliseconds_since_last_evaporation);
+extern float (*ara_routing_table_evaporate)(float old_pheromone_value, uint64_t milliseconds_since_last_evaporation);
 
 #ifdef __cplusplus
 }
