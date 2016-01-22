@@ -16,7 +16,7 @@
  * @author      Michael Frey <frey@informatik.hu-berlin.de>
  */
 
-#ifndef ARA_PACKET_H__
+#ifndef ARA_PACKET_H_
 #define ARA_PACKET_H_
 
 #include "stdint.h"

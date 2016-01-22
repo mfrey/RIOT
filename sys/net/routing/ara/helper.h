@@ -16,7 +16,7 @@
  * @author      Michael Frey <frey@informatik.hu-berlin.de>
  */
 
-#ifndef ARA_HELPER_H__
+#ifndef ARA_HELPER_H_
 #define ARA_HELPER_H_
 
 #include "stdint.h"
