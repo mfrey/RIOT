@@ -19,12 +19,12 @@
 
 #include <math.h>
 
-static uint16_t time_interval = 0;
+static uint64_t time_interval = 0;
 static float threshold = .0;
 static float evaporation_factor = .0;
 static uint8_t evaporation_type = 0;
 
-void ara_evaporation_init(float factor, float pheromone_threshold, uint16_t time_interval_milliseconds, uint8_t type)
+void ara_evaporation_init(float factor, float pheromone_threshold, uint64_t time_interval_milliseconds, uint8_t type)
 {
     evaporation_factor = factor;
     threshold = pheromone_threshold;
@@ -32,7 +32,7 @@ void ara_evaporation_init(float factor, float pheromone_threshold, uint16_t time
     evaporation_type = type;
 }
 
-float ara_evaporation_linear(float old_pheromone_value, uint16_t milliseconds_since_last_evaporation)
+float ara_evaporation_linear(float old_pheromone_value, uint64_t milliseconds_since_last_evaporation)
 {
     if (milliseconds_since_last_evaporation == 0) {
         return old_pheromone_value;
@@ -52,7 +52,7 @@ float ara_evaporation_linear(float old_pheromone_value, uint16_t milliseconds_si
     }
 }
 
-float ara_evaporation_exponential(float old_pheromone_value, uint16_t milliseconds_since_last_evaporation)
+float ara_evaporation_exponential(float old_pheromone_value, uint64_t milliseconds_since_last_evaporation)
 {
     if (milliseconds_since_last_evaporation == 0) {
         return old_pheromone_value;
