@@ -20,6 +20,7 @@
 #include "msg.h"
 #include "forwarding.h"
 #include "routingtable.h"
+#include "reinforcement.h"
 
 
 kernel_pid_t ara_pid = KERNEL_PID_UNDEF;
@@ -27,6 +28,8 @@ kernel_pid_t ara_pid = KERNEL_PID_UNDEF;
 static char _ara_stack[ARA_STACK_SIZE];
 /* main event loop for ARA */
 static void *ara_event_loop(void *args);
+/** the next sequence number */
+static uint8_t next_sequence_number = 0;
 
 kernel_pid_t ara_init(void)
 {
@@ -80,12 +83,11 @@ void ara_send_packet(ara_packet_t* packet)
             /* build packet */
 
             /* reinforce pheromone value */
-//            float phi = ara_reinforce_pheromone(next_hop->address, destination, NULL);
+            ara_reinforce_pheromone(next_hop->address, destination);
 #if ENABLE_DEBUG
-            struct netaddr_str buf;
-            printf("there is no routing table entry for %s\n", netaddr_to_string(&buf, destination));
+            struct netaddr_str src_buf, dest_buf, nh_buf;
+            printf("forwarding DATA packet %u from %s to %s via %s \n", packet->seq_nr, netaddr_to_string(&src_buf, packet->source), netaddr_to_string(&dest_buf, destination), netaddr_to_string(&dest_buf, next_hop->address));
 #endif
-   
             /* send packet */
 
         } else {
@@ -134,12 +136,10 @@ ara_next_hop_t* ara_get_next_hop(struct netaddr* destination)
 }
 
 
-void ara_reinforce_pheromone(struct netaddr* next_hop, struct netaddr* destination, void* interface)
+void ara_reinforce_pheromone(struct netaddr* next_hop, struct netaddr* destination)
 {
-    float current_value = ara_routing_table_get_pheromone_value(destination, next_hop);
-    float new_pheromone_value = ara_reinforce(current_pheromone_value);
-//    ara_routing_table_update(destination, next_hop, interface, new_pheromone_value);
-    return new_pheromone_value;
+    float phi = ara_routing_table_get_pheromone_value(destination, next_hop);
+    ara_routing_table_update(destination, next_hop, ara_reinforce(phi));
 }
 
 
@@ -150,19 +150,34 @@ bool ara_is_route_discovery_running(struct netaddr* destination)
 
 void ara_handle_non_source_route_discovery(ara_packet_t *packet)
 {
-    // Dropping packet ....
+#if ENABLE_DEBUG
+    struct netaddr_str buf;
+    printf("dropping packet %u from %s because no route is known (non-source RD disabled)\n", packet->seq_nr, netaddr_to_string(&buf, packet->source));
+#endif
     ara_broadcast_route_failure(packet->destination);
-    //free packet
+    //free(packet);
 }
 
-void ara_broadcast_route_failure(struct netaddr* address)
+void ara_broadcast_route_failure(struct netaddr* destination)
 {
-
+    uint8_t seq_nr = ara_get_next_sequence_number();
+    /** TODO: */ 
+    struct netaddr* local_address = NULL;
+    ara_packet_t* route_failure_packet = ara_packets_make_route_failure_packet(local_address, destination, seq_nr);
 }
+
 
 void ara_handle_packet_with_zero_ttl(ara_packet_t* packet)
 {
-    // Dropping packet ...
-    // free(packet);
+#if ENABLE_DEBUG
+    struct netaddr_str buf;
+    printf("dropping packet %u from %s because TTL reached zero", packet->seq_nr, netaddr_to_string(&buf, packet->source));
+#endif
+    // TODO
+    free(packet);
 }
 
+uint8_t ara_get_next_sequence_number(void) 
+{
+    return next_sequence_number++;
+}

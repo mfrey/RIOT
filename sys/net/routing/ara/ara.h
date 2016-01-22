@@ -23,6 +23,7 @@
 #include "packet.h"
 #include "routingtable.h"
 
+#include "thread.h"
 #include "kernel_types.h"
 
 #ifdef __cplusplus
@@ -92,7 +93,7 @@ void ara_handle_non_source_route_discovery(ara_packet_t* packet);
 
 void ara_handle_packet_with_zero_ttl(ara_packet_t* packet);
 
-void ara_broadcast_route_failure(struct netaddr* address);
+void ara_broadcast_route_failure(struct netaddr* destination);
 
 bool ara_is_local_address(struct netaddr* address);
 
@@ -102,9 +103,16 @@ bool ara_is_route_discovery_running(struct netaddr* address);
 
 ara_next_hop_t* ara_get_next_hop(struct netaddr* destination);
 
-void ara_reinforce_pheromone(struct netaddr* next_hop, struct netaddr* destination, void* interface);
+void ara_reinforce_pheromone(struct netaddr* next_hop, struct netaddr* destination);
 
 float (*ara_reinforce)(float value);
+
+/**
+ * Returns the next sequence number and increases the sequence number by one.
+ *
+ * @return The next sequence number.
+ */
+uint8_t ara_get_next_sequence_number(void);
 
 #ifdef  __cplusplus
 }

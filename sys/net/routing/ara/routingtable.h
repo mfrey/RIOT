@@ -86,8 +86,9 @@ ara_routing_entry_t *ara_routing_table_get_entry(struct netaddr *destination);
 
 /**
  * @brief     Initializes the routing table.
+ * @param[in] The type of the evaporation function (0 = linear, 1 = exponential)
  */
-void ara_routing_table_init(void);
+void ara_routing_table_init(uint8_t type);
 
 /**
  * @brief     Prints the routing table.
@@ -157,7 +158,7 @@ float ara_routing_table_get_pheromone_value(struct netaddr* destination, struct 
 // TODO
 ara_next_hop_t* ara_routing_table_get_next_hop_entry(struct netaddr* destination, struct netaddr* next_hop);
 
-void ara_routing_table_update(struct netaddr* destination, struct netaddr* next_hop, void* interface, float new_pheromone_value);
+void ara_routing_table_update(struct netaddr* destination, struct netaddr* next_hop, float new_pheromone_value);
 
 /**
  * @brief The function triggers the evaporation process, iff enough time has
@@ -174,7 +175,7 @@ void ara_routing_table_apply_evaporation(uint64_t timestamp);
 
 ara_next_hop_t* ara_routing_table_create_next_hop(struct netaddr* address, float pheromone_value);
 
-float (*ara_routing_table_evaporate)(float old_pheromone_value, int milliseconds_since_last_evaporation);
+extern float (*ara_routing_table_evaporate)(float old_pheromone_value, uint8_t milliseconds_since_last_evaporation);
 
 #ifdef __cplusplus
 }

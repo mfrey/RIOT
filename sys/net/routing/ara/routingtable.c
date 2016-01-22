@@ -28,13 +28,23 @@
  */
 static ara_routing_entry_t* ara_routing_table = NULL;
 
+float (*ara_routing_table_evaporate)(float old_pheromone_value, uint8_t milliseconds_since_last_evaporation);
+
 uint64_t last_access_time;
 
-void ara_routing_table_init(void) 
+void ara_routing_table_init(uint8_t evaporation_type) 
 {
     last_access_time = 0;
-    // TODO: make this dependent from the user (if/else + defines)
-    ara_routing_table_evaporate = ara_evaporation_exponential;
+
+    if (evaporation_type == 0) {
+        ara_routing_table_evaporate = ara_evaporation_linear;
+    /** 
+     * if 1 or no valid number is passed to the function, we use by default a
+     * exponential evaporation
+     */
+    } else {
+        ara_routing_table_evaporate = ara_evaporation_exponential;
+    }
 }
 
 void ara_routing_table_clear(void)
@@ -147,6 +157,8 @@ void ara_print_next_hop_entry(ara_next_hop_t *entry)
     printf("\t\t phi: %f credit: %f ttl: %d\n", entry->phi, entry->credit, entry->ttl);
 }
 
+// TODO: add sanity check if entry does not exist, its created before the next
+// hop is added 
 void ara_routing_table_add_next_hop(ara_routing_entry_t *entry, ara_next_hop_t *next_hop)
 {
     ara_next_hop_t *result;
@@ -222,9 +234,15 @@ ara_next_hop_t* ara_routing_table_get_next_hop_entry(struct netaddr* destination
 {
     ara_next_hop_t *result = NULL;
     ara_routing_entry_t* entry = ara_routing_table_get_entry(destination);
+    /**
+     * since we can't search for addresses, but only next hop structures we have
+     * to create one.
+     */
+    ara_next_hop_t next_hop_entry;
+    next_hop_entry.address = next_hop;
 
     if (entry) {
-//        DL_SEARCH(entry->next_hops, result, next_hop, ara_routing_table_next_hop_compare);
+        DL_SEARCH(entry->next_hops, result, &next_hop_entry, ara_routing_table_next_hop_compare);
     } else {
 #if ENABLE_DEBUG
         struct netaddr_str buf;
@@ -235,7 +253,7 @@ ara_next_hop_t* ara_routing_table_get_next_hop_entry(struct netaddr* destination
     return result;
 }
 
-void ara_routing_table_update(struct netaddr* destination, struct netaddr* next_hop, void* interface, float new_pheromone_value)
+void ara_routing_table_update(struct netaddr* destination, struct netaddr* next_hop, float new_pheromone_value)
 {
     /* check if there is such an entry for the destination */
     ara_routing_entry_t* entry = ara_routing_table_get_entry(destination);
@@ -243,8 +261,15 @@ void ara_routing_table_update(struct netaddr* destination, struct netaddr* next_
     /* there is already an entry for the destination */
     if (entry) {
         ara_next_hop_t *result = NULL;
+        /**
+         * since we can't search for addresses, but only next hop structures we have
+         * to create one.
+         */
+        ara_next_hop_t next_hop_entry;
+        next_hop_entry.address = next_hop;
+
         /* is the entry in the next hop list */
-        DL_SEARCH(entry->next_hops, result, next_hop, ara_routing_table_next_hop_compare);
+        DL_SEARCH(entry->next_hops, result, &next_hop_entry, ara_routing_table_next_hop_compare);
 
         if(result){
             result->phi = new_pheromone_value;

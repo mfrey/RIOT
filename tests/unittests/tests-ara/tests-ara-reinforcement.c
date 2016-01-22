@@ -6,7 +6,7 @@
  * directory for more details.
  */
 #include "tests-ara.h"
-#include "tests-ara-helper.h"
+#include "tests-ara-util.h"
 
 #include "net/routing/ara/reinforcement.h"
 

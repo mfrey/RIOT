@@ -67,6 +67,8 @@ void ara_packets_make_clone();
 
 const char* ara_packet_get_type_as_string(char type);
 
+ara_packet_t* ara_packets_make_route_failure_packet(struct netaddr *source, struct netaddr *destination, uint8_t sequence_number);
+
 #ifdef __cplusplus
 }
 #endif
