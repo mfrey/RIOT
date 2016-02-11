@@ -105,6 +105,10 @@ ara_next_hop_t* ara_get_next_hop(struct netaddr* destination);
 
 void ara_reinforce_pheromone(struct netaddr* next_hop, struct netaddr* destination);
 
+/**
+ * Function pointer to the pheromone reinforce function
+ *
+ */
 float (*ara_reinforce)(float value);
 
 /**
