@@ -19,18 +19,47 @@
 #ifndef ARA_PACKET_TRAP_H_
 #define ARA_PACKET_TRAP_H_
 
+#include "uthash.h"
+#include "utlist.h"
 #include "stdint.h"
 #include "stdbool.h"
+
+#include "common/netaddr.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/** 
+ * The ARA trapped packet structure is used as an list element for the ARA packet trap.
+ */                                                                                                                           
+struct ara_packet_trap_trapped_packet_s 
+{                                                                                                                                                     
+    /** TODO */
+    uint8_t ttl;                                   /**< TTL for this entry */
+    struct ara_packet_trap_trapped_packet_s* prev; /**< previous entry in the list */
+    struct ara_packet_trap_trapped_packet_s* next; /**< next entry in the list */
+};
+
+typedef struct ara_packet_trap_trapped_packet_s ara_packet_trap_trapped_packet_t;
+
+/** 
+ * ARA packet trap entry 
+ */
+struct ara_packet_trap_entry_s
+{
+    struct netaddr* destination;               /**< destination address */
+    ara_packet_trap_trapped_packet_t* packets; /**< a list of packets to the destination */
+    UT_hash_handle hh;
+};
+
+typedef struct ara_packet_trap_entry_s ara_packet_trap_entry_t;
+
 void ara_packet_trap_init(void);
 
 /**
  * @brief Stores the given packet in the packet trap until it is removed via
- * untrapDeliverablePackets(..). The order of trapped packets is preserved in
+ * ara_packt_trap_untrap_deliverable_packets(..). The order of trapped packets is preserved in
  * a FIFO style.
  */
 void ara_packet_trap_trap_packet(void);
@@ -44,7 +73,7 @@ bool ara_packet_trap_contains(void);
  * @brief  Returns the number of trapped packets for a given destination or the
  * total number of all trapped packets if destination is null.
  */
-uint16_t ara_packet_trap_count(void);
+uint8_t ara_packet_trap_count(struct netaddr* destination);
 
 
 #ifdef __cplusplus
