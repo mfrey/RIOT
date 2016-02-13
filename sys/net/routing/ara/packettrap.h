@@ -24,6 +24,7 @@
 #include "stdint.h"
 #include "stdbool.h"
 
+#include "net/gnrc.h"
 #include "common/netaddr.h"
 
 #ifdef __cplusplus
@@ -34,9 +35,8 @@ extern "C" {
  * The ARA trapped packet structure is used as an list element for the ARA packet trap.
  */                                                                                                                           
 struct ara_packet_trap_trapped_packet_s 
-{                                                                                                                                                     
-    /** TODO */
-    uint8_t ttl;                                   /**< TTL for this entry */
+{                                       
+    gnrc_pktsnip_t *packet;                        /**< the packet which is trapped */
     struct ara_packet_trap_trapped_packet_s* prev; /**< previous entry in the list */
     struct ara_packet_trap_trapped_packet_s* next; /**< next entry in the list */
 };
@@ -48,7 +48,7 @@ typedef struct ara_packet_trap_trapped_packet_s ara_packet_trap_trapped_packet_t
  */
 struct ara_packet_trap_entry_s
 {
-    struct netaddr* destination;               /**< destination address */
+    ipv6_addr_t* destination;                  /**< destination address */
     ara_packet_trap_trapped_packet_t* packets; /**< a list of packets to the destination */
     UT_hash_handle hh;
 };
@@ -73,7 +73,7 @@ bool ara_packet_trap_contains(void);
  * @brief  Returns the number of trapped packets for a given destination or the
  * total number of all trapped packets if destination is null.
  */
-uint8_t ara_packet_trap_count(struct netaddr* destination);
+uint8_t ara_packet_trap_count(ipv6_addr_t* destination);
 
 
 #ifdef __cplusplus

@@ -35,13 +35,13 @@ bool ara_packet_trap_contains(void)
     return false;
 }
 
-uint8_t ara_packet_trap_count(struct netaddr* destination) 
+uint8_t ara_packet_trap_count(ipv6_addr_t* destination) 
 {
     ara_packet_trap_entry_t* entry= NULL;
     /** by default there is are no packets in the packet trap */
     uint8_t result = -1;
     /** find the entry in the packet trap */
-    HASH_FIND(hh, ara_packet_trap, destination, sizeof(struct netaddr), entry);
+    HASH_FIND(hh, ara_packet_trap, destination, sizeof(ipv6_addr_t), entry);
 
     if (entry!= NULL) {
         if (entry->packets != NULL) {
