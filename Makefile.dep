@@ -251,7 +251,7 @@ ifneq (,$(filter sixlowpan,$(USEMODULE)))
 endif
 ifneq (,$(filter ara,$(USEMODULE)))
   USEMODULE += vtimer
-  USEMODULE += gnrc_sixlowpan_default
+  USEMODULE += gnrc_ipv6
   USEMODULE += oonf_common
 endif
 
