@@ -22,27 +22,22 @@
 #include "stdint.h"
 #include "stdbool.h"
 
+#include "net/gnrc/nettype.h"
+#include "net/ipv6/addr.h"
+#include "net/ipv6/hdr.h"
+#include "net/gnrc.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 typedef enum 
 {
-    DATA,  /**< data packet */
-    FANT,  /**< forward ant agent */
-    BANT   /**< backward ant agent */
+    DATA,         /**< data packet */
+    FANT,         /**< forward ant agent */
+    BANT,         /**< backward ant agent */
+    ROUTE_FAILURE /**< route failure */
 } ara_packet_type; 
-
-struct ara_packet_s 
-{
-    char type;                    /**< type of the packet */
-    uint8_t seq_nr;               /**< sequence number */
-    struct netaddr *source;       /**< source address of the packet address */
-    struct netaddr *destination;  /**< destination address of the packet */
-    uint8_t ttl;                  /**< time-to-live (ttl) of the packet */
-};
-
-typedef struct ara_packet_s ara_packet_t;
 
 inline bool ara_packet_is_ant_packet(char type)
 {
@@ -57,17 +52,21 @@ inline bool ara_packet_is_ant_packet(char type)
 
 /*
 void ara_packets_initialize(uint8_t max_hop_count);
-
-void ara_packets_make_forward_ant_agent();
-
-void ara_packets_make_backward_ant_agent();
-
-void ara_packets_make_clone();
 */
+
+char* ara_packet_prepare_payload(char type, char* payload, uint8_t payload_size);
+
+gnrc_pktsnip_t* ara_packet_make_bant(gnrc_pktsnip_t* packet);
+
+gnrc_pktsnip_t* ara_packet_make_fant(ipv6_addr_t* source, ipv6_addr_t* destination);
+
+gnrc_pktsnip_t* ara_packet_make_route_failure(ipv6_addr_t* source, ipv6_addr_t* destination);
+
+gnrc_pktsnip_t* ara_packet_make_packet(ipv6_addr_t* source, ipv6_addr_t* destination, ipv6_addr_t* sender, 
+        char type, char* data, uint8_t data_size, ipv6_addr_t* previous_hop);
 
 const char* ara_packet_get_type_as_string(char type);
 
-ara_packet_t* ara_packets_make_route_failure_packet(struct netaddr *source, struct netaddr *destination, uint8_t sequence_number);
 
 #ifdef __cplusplus
 }
