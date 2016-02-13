@@ -23,7 +23,7 @@
 #include "utlist.h"
 #include "constants.h"
 
-#include "common/netaddr.h"
+#include "net/ipv6/addr.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,7 +35,7 @@ extern "C" {
  */                                                                                                                           
 struct ara_next_hop_s 
 {                                                                                                                                                     
-    struct netaddr* address;     /**< the actual next hop */
+    ipv6_addr_t* address;     /**< the actual next hop */
     double phi;                  /**< pheromone value of the entry */
     double credit;               /**< how many times we may not receive an ack before the route is dropped */
     uint8_t ttl;                 /**< TTL for this entry */
@@ -50,10 +50,10 @@ typedef struct ara_next_hop_s ara_next_hop_t;
  */
 struct ara_routing_entry_s
 {
-    struct netaddr* destination; /**< destination address */
+    ipv6_addr_t* destination; /**< destination address */
     uint64_t last_access_time;   /**< last access time of the routing table entry */
     ara_next_hop_t* next_hops;   /**< list of all potential next hops */
-    uint8_t size;                /**< size of the next hop list */
+    uint8_t size;
     UT_hash_handle hh;
 };
 
@@ -69,7 +69,7 @@ void ara_routing_table_add_entry(ara_routing_entry_t *entry);
  * @brief     Returns a next hop for a given destination
  * @param[in] destination The destination address of a route
  */
-struct netaddr *ara_routing_table_get_next_hop(struct netaddr *destination);
+ipv6_addr_t *ara_routing_table_get_next_hop(ipv6_addr_t *destination);
 
 /**
  * @brief     Deletes the routing table entry (if existent) for a given destination 
@@ -82,7 +82,7 @@ void ara_routing_table_del_entry(ara_routing_entry_t *entry);
  * @brief     Return a routing table entry (if existent) for a given destination 
  * @param[in] destination The destination address of a route
  */
-ara_routing_entry_t *ara_routing_table_get_entry(struct netaddr *destination);
+ara_routing_entry_t *ara_routing_table_get_entry(ipv6_addr_t *destination);
 
 /**
  * @brief     Initializes the routing table.
@@ -125,7 +125,7 @@ void ara_routing_table_add_next_hop(ara_routing_entry_t *entry, ara_next_hop_t *
  * @brief     Checks if a routing table entry for a given destination exists
  * @param[in] destination The destination address of the routing table entry 
  */
-bool ara_routing_table_entry_exists(struct netaddr *destination);
+bool ara_routing_table_entry_exists(ipv6_addr_t *destination);
 
 /**
  * @brief     Returns the size of the routing table
@@ -145,20 +145,20 @@ void ara_routing_table_del_next_hops(ara_routing_entry_t *entry);
  * @return    True if a destination has next hops and hence a packet can
  * be delivered, otherweise false
  */
-bool ara_routing_table_is_deliverable(struct netaddr* destination);
+bool ara_routing_table_is_deliverable(ipv6_addr_t* destination);
 
 // TODO
 ara_next_hop_t *ara_get_next_hop_entry(ara_routing_entry_t *entry, uint8_t position);
 
-int ara_routing_table_next_hop_compare(ara_next_hop_t *first, ara_next_hop_t *second);
+bool ara_routing_table_next_hop_compare(ara_next_hop_t *first, ara_next_hop_t *second);
 
 void ara_routing_table_clear(void);
 
-float ara_routing_table_get_pheromone_value(struct netaddr* destination, struct netaddr* next_hop);
+float ara_routing_table_get_pheromone_value(ipv6_addr_t* destination, ipv6_addr_t* next_hop);
 // TODO
-ara_next_hop_t* ara_routing_table_get_next_hop_entry(struct netaddr* destination, struct netaddr* next_hop);
+ara_next_hop_t* ara_routing_table_get_next_hop_entry(ipv6_addr_t* destination, ipv6_addr_t* next_hop);
 
-void ara_routing_table_update(struct netaddr* destination, struct netaddr* next_hop, float new_pheromone_value);
+void ara_routing_table_update(ipv6_addr_t* destination, ipv6_addr_t* next_hop, float new_pheromone_value);
 
 /**
  * @brief The function triggers the evaporation process, iff enough time has
@@ -173,7 +173,7 @@ void ara_routing_table_trigger_evaporation(void);
  */
 void ara_routing_table_apply_evaporation(uint64_t timestamp);
 
-ara_next_hop_t* ara_routing_table_create_next_hop(struct netaddr* address, float pheromone_value);
+ara_next_hop_t* ara_routing_table_create_next_hop(ipv6_addr_t* address, float pheromone_value);
 
 extern float (*ara_routing_table_evaporate)(float old_pheromone_value, uint64_t milliseconds_since_last_evaporation);
 

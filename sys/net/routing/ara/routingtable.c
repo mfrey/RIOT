@@ -23,6 +23,10 @@
 
 #include "xtimer.h"
 
+#if ENABLE_DEBUG 
+static char addr_str[IPV6_ADDR_MAX_STR_LEN];
+#endif
+
 /***
  *
  */
@@ -64,7 +68,7 @@ void ara_routing_table_clear(void)
 void ara_routing_table_add_entry(ara_routing_entry_t *entry)
 {
     if (!ara_routing_table_entry_exists(entry->destination)) {
-        HASH_ADD_KEYPTR(hh, ara_routing_table, entry->destination, sizeof(struct netaddr), entry);
+        HASH_ADD_KEYPTR(hh, ara_routing_table, entry->destination, sizeof(ipv6_addr_t), entry);
     }
 }
 
@@ -82,7 +86,7 @@ void ara_routing_table_del_entry(ara_routing_entry_t *entry)
     }
 }
 
-struct netaddr *ara_routing_table_get_next_hop(struct netaddr *destination)
+ipv6_addr_t *ara_routing_table_get_next_hop(ipv6_addr_t *destination)
 {
     ara_routing_entry_t *entry = ara_routing_table_get_entry(destination);
 
@@ -98,7 +102,7 @@ struct netaddr *ara_routing_table_get_next_hop(struct netaddr *destination)
     return NULL;
 }
 
-bool ara_routing_table_is_deliverable(struct netaddr* destination)
+bool ara_routing_table_is_deliverable(ipv6_addr_t *destination)
 {
     ara_routing_entry_t *entry = NULL;
 
@@ -111,15 +115,15 @@ bool ara_routing_table_is_deliverable(struct netaddr* destination)
 }
 
 
-bool ara_routing_table_entry_exists(struct netaddr *destination) 
+bool ara_routing_table_entry_exists(ipv6_addr_t *destination) 
 {
     return (ara_routing_table_get_entry(destination) != NULL);
 }
 
-ara_routing_entry_t* ara_routing_table_get_entry(struct netaddr *dest)
+ara_routing_entry_t* ara_routing_table_get_entry(ipv6_addr_t *dest)
 {
     ara_routing_entry_t *result = NULL;
-    HASH_FIND(hh, ara_routing_table, dest, sizeof(struct netaddr), result);
+    HASH_FIND(hh, ara_routing_table, dest, sizeof(ipv6_addr_t), result);
     return result;
 }
 
@@ -137,11 +141,14 @@ void ara_print_routing_table(void)
 void ara_print_routing_table_entry(ara_routing_entry_t *entry)
 {
     if (entry->size > 0) {
-        struct netaddr_str nbuf;
         ara_next_hop_t *element, *temporary_element;
 
-        printf(".................................\n");
-        printf("\t destination: %s\n", netaddr_to_string(&nbuf, entry->destination));
+#if ENABLE_DEBUG
+        if (ipv6_addr_to_str(addr_str, entry->destination, sizeof(addr_str)) != NULL) {
+            printf(".................................\n");
+            printf("\t destination: %s\n", addr_str);
+        }
+#endif
 
         DL_FOREACH_SAFE(entry->next_hops, element, temporary_element) {
             ara_print_next_hop_entry(element);
@@ -152,8 +159,11 @@ void ara_print_routing_table_entry(ara_routing_entry_t *entry)
 
 void ara_print_next_hop_entry(ara_next_hop_t *entry)
 {
-    struct netaddr_str nbuf;
-    printf("\t\t next hop: %s\n", netaddr_to_string(&nbuf, entry->address));
+#if ENABLE_DEBUG
+    if (ipv6_addr_to_str(addr_str, entry->address, sizeof(addr_str)) != NULL) {
+        printf("\t\t next hop: %s\n", addr_str);
+    }
+#endif
     printf("\t\t phi: %f credit: %f ttl: %d\n", entry->phi, entry->credit, entry->ttl);
 }
 
@@ -169,8 +179,9 @@ void ara_routing_table_add_next_hop(ara_routing_entry_t *entry, ara_next_hop_t *
         entry->size++;
     } else {
 #if ENABLE_DEBUG
-        struct netaddr_str buf;
-        printf("there is already a next hop entry %s\n", netaddr_to_string(&buf, next_hop->address));
+        if (ipv6_addr_to_str(addr_str, next_hop->address, sizeof(addr_str)) != NULL) {
+            printf("there is already a next hop entry %s\n", addr_str);
+        }
 #endif
     }
 }
@@ -187,9 +198,9 @@ void ara_routing_table_del_next_hops(ara_routing_entry_t *entry)
     }
 }
 
-int ara_routing_table_next_hop_compare(ara_next_hop_t *first, ara_next_hop_t *second)
+bool ara_routing_table_next_hop_compare(ara_next_hop_t *first, ara_next_hop_t *second)
 {
-    return netaddr_cmp(first->address, second->address);
+    return ipv6_addr_equal(first->address, second->address);
 }
 
 // FIXME: might be a source of issues
@@ -213,7 +224,7 @@ uint8_t ara_routing_table_size(void)
     return HASH_COUNT(ara_routing_table);
 }
 
-float ara_routing_table_get_pheromone_value(struct netaddr* destination, struct netaddr* next_hop)
+float ara_routing_table_get_pheromone_value(ipv6_addr_t* destination, ipv6_addr_t* next_hop)
 {
     float result = 0.;
     ara_next_hop_t* entry = ara_routing_table_get_next_hop_entry(destination, next_hop);
@@ -222,15 +233,16 @@ float ara_routing_table_get_pheromone_value(struct netaddr* destination, struct 
         result = entry->phi;
     } else {
 #if ENABLE_DEBUG
-        struct netaddr_str buf;
-        printf("there is no such next hop %s\n", netaddr_to_string(&buf, next_hop));
+        if (ipv6_addr_to_str(addr_str, next_hop, sizeof(addr_str)) != NULL) {
+            printf("there is no such next hop %s\n", addr_str);
+        }
 #endif
     }
 
     return result;
 }
 
-ara_next_hop_t* ara_routing_table_get_next_hop_entry(struct netaddr* destination, struct netaddr* next_hop)
+ara_next_hop_t* ara_routing_table_get_next_hop_entry(ipv6_addr_t* destination, ipv6_addr_t* next_hop)
 {
     ara_next_hop_t *result = NULL;
     ara_routing_entry_t* entry = ara_routing_table_get_entry(destination);
@@ -245,15 +257,16 @@ ara_next_hop_t* ara_routing_table_get_next_hop_entry(struct netaddr* destination
         DL_SEARCH(entry->next_hops, result, &next_hop_entry, ara_routing_table_next_hop_compare);
     } else {
 #if ENABLE_DEBUG
-        struct netaddr_str buf;
-        printf("there is no such entry for destination address %s\n", netaddr_to_string(&buf, destination));
+        if (ipv6_addr_to_str(addr_str, destination, sizeof(addr_str)) != NULL) {
+            printf("there is no such entry for destination address %s\n", addr_str);
+        }
 #endif
     }
 
     return result;
 }
 
-void ara_routing_table_update(struct netaddr* destination, struct netaddr* next_hop, float new_pheromone_value)
+void ara_routing_table_update(ipv6_addr_t* destination, ipv6_addr_t* next_hop, float new_pheromone_value)
 {
     /* check if there is such an entry for the destination */
     ara_routing_entry_t* entry = ara_routing_table_get_entry(destination);
@@ -297,21 +310,22 @@ void ara_routing_table_update(struct netaddr* destination, struct netaddr* next_
                 /* set the next hop list to the newly created element */
                 entry->next_hops = next_hop_entry;
                 
-                HASH_ADD_KEYPTR(hh, ara_routing_table, entry->destination, sizeof(struct netaddr), entry);
+                HASH_ADD_KEYPTR(hh, ara_routing_table, entry->destination, sizeof(ipv6_addr_t), entry);
             } else {
                 /* the allocation of the next hop list failed */
                 free(entry);
             }
         } else {
 #if ENABLE_DEBUG
-            struct netaddr_str buf;
-            printf("could not create routing table entry for destination address %s\n", netaddr_to_string(&buf, destination));
+            if (ipv6_addr_to_str(addr_str, destination, sizeof(addr_str)) != NULL) {
+                printf("could not create routing table entry for destination address %s\n", addr_str);
+            }
 #endif 
         }
     } 
 }
 
-ara_next_hop_t* ara_routing_table_create_next_hop(struct netaddr* address, float pheromone_value) {
+ara_next_hop_t* ara_routing_table_create_next_hop(ipv6_addr_t* address, float pheromone_value) {
     ara_next_hop_t* result = malloc(sizeof(ara_next_hop_t));
 
     if (result) {
@@ -319,8 +333,9 @@ ara_next_hop_t* ara_routing_table_create_next_hop(struct netaddr* address, float
         result->phi = pheromone_value;
     } else {
 #if ENABLE_DEBUG
-        struct netaddr_str buf;
-        printf("could not create next hop entry for address %s\n", netaddr_to_string(&buf, address));
+        if (ipv6_addr_to_str(addr_str, address, sizeof(addr_str)) != NULL) {
+            printf("could not create next hop entry for address %s\n", address);
+        }
 #endif 
     }
 

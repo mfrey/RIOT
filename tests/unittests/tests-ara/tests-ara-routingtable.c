@@ -16,16 +16,16 @@ static void test_ara_routing_table_add_entry(void)
     memset(&entry, 0, sizeof(ara_routing_entry_t));
     memset(&another_entry, 0, sizeof(ara_routing_entry_t));
 
-    struct netaddr address = { {
+    ipv6_addr_t address = { {
             0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
             0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
-        }, AF_INET6, 128
+        }
     };
 
-    struct netaddr another_address = { {
+    ipv6_addr_t another_address = { {
             0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
             0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07
-        }, AF_INET6, 128
+        }
     };
 
     /* add first entry */
@@ -57,10 +57,10 @@ static void test_ara_routing_table_get_entry(void)
 
     //printf("size is: %d\n", ara_routing_table_size());
 
-    struct netaddr address = { {
+    ipv6_addr_t address = { {
             0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
             0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0xff
-        }, AF_INET6, 128
+        }
     };
 
     /* the entry should not be in the routing table */
@@ -83,16 +83,16 @@ static void test_ara_routing_table_add_next_hop(void)
     ara_routing_entry_t entry; 
     memset(&entry, 0, sizeof(ara_routing_entry_t));
 
-    struct netaddr address = { {
+    ipv6_addr_t address = { {
             0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
             0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
-        }, AF_INET6, 128
+        }
     };
 
-    struct netaddr next_hop_address = { {
+    ipv6_addr_t next_hop_address = { {
             0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
             0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
-        }, AF_INET6, 128
+        }
     };
 
     entry.destination = &address;
@@ -117,16 +117,16 @@ static void test_ara_routing_table_del_next_hops(void)
     ara_routing_entry_t entry; 
     memset(&entry, 0, sizeof(ara_routing_entry_t));
 
-    struct netaddr address = { {
+    ipv6_addr_t address = { {
             0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
             0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
-        }, AF_INET6, 128
+        }
     };
 
-    struct netaddr next_hop_address = { {
+    ipv6_addr_t next_hop_address = { {
             0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
             0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
-        }, AF_INET6, 128
+        }
     };
 
     entry.destination = &address;
@@ -154,17 +154,17 @@ static void test_ara_routing_table_is_deliverable(void)
     ara_routing_entry_t entry; 
     memset(&entry, 0, sizeof(ara_routing_entry_t));
 
-    struct netaddr address = { {
+    ipv6_addr_t address = { {
             0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
             0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07
-        }, AF_INET6, 128
+        }
     };
 
 
-    struct netaddr next_hop_address = { {
+    ipv6_addr_t next_hop_address = { {
             0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
             0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
-        }, AF_INET6, 128
+        }
     };
 
     next_hop.address = &next_hop_address;
@@ -187,16 +187,16 @@ static void test_ara_routing_table_is_deliverable(void)
 
 static void test_ara_routing_table_next_hop_compare(void)
 {
-    struct netaddr first_next_hop_address = { {
+    ipv6_addr_t first_next_hop_address = { {
             0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
             0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
-        }, AF_INET6, 128
+        }
     };
 
-    struct netaddr second_next_hop_address = { {
+    ipv6_addr_t second_next_hop_address = { {
             0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
             0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07
-        }, AF_INET6, 128
+        }
     };
 
     ara_next_hop_t first_next_hop;
@@ -219,16 +219,16 @@ static void test_ara_routing_table_update(void)
     ara_routing_entry_t* temp_entry; 
     memset(&entry, 0, sizeof(ara_routing_entry_t));
 
-    struct netaddr address = { {
+    ipv6_addr_t address = { {
             0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
             0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07
-        }, AF_INET6, 128
+        }
     };
 
-    struct netaddr next_hop_address = { {
+    ipv6_addr_t next_hop_address = { {
             0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
             0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
-        }, AF_INET6, 128
+        }
     };
 
     next_hop.address = &next_hop_address;

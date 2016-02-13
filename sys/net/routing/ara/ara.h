@@ -81,29 +81,29 @@ extern "C" {
 
 kernel_pid_t ara_init(void);
 
-void ara_send_packet(ara_packet_t* packet);
+void ara_send_packet(gnrc_pktsnip_t* packet);
 
 /*
 void ara_receive_packet();
 */
 
-bool ara_is_route_discovery_running(struct netaddr* destination);
+bool ara_is_route_discovery_running(ipv6_addr_t* destination);
 
-void ara_handle_non_source_route_discovery(ara_packet_t* packet);
+void ara_handle_non_source_route_discovery(gnrc_pktsnip_t* packet);
 
-void ara_handle_packet_with_zero_ttl(ara_packet_t* packet);
+void ara_handle_packet_with_zero_hop_limit(gnrc_pktsnip_t* packet);
 
-void ara_broadcast_route_failure(struct netaddr* destination);
+void ara_broadcast_route_failure(ipv6_addr_t* destination);
 
-bool ara_is_local_address(struct netaddr* address);
+bool ara_is_local_address(ipv6_addr_t* address);
 
-void ara_start_new_route_discovery(ara_packet_t* packet);
+void ara_start_new_route_discovery(gnrc_pktsnip_t* packet);
 
-bool ara_is_route_discovery_running(struct netaddr* address);
+bool ara_is_route_discovery_running(ipv6_addr_t* address);
 
-ara_next_hop_t* ara_get_next_hop(struct netaddr* destination);
+ara_next_hop_t* ara_get_next_hop(ipv6_addr_t* destination);
 
-void ara_reinforce_pheromone(struct netaddr* next_hop, struct netaddr* destination);
+void ara_reinforce_pheromone(ipv6_addr_t* next_hop, ipv6_addr_t* destination);
 
 /**
  * Function pointer to the pheromone reinforce function
@@ -117,6 +117,16 @@ float (*ara_reinforce)(float value);
  * @return The next sequence number.
  */
 uint8_t ara_get_next_sequence_number(void);
+
+ipv6_addr_t* ara_get_source_address(void);
+
+void ara_broadcast_fant(ipv6_addr_t* destination);
+
+void ara_send(gnrc_pktsnip_t* packet);
+
+bool ara_is_ipv6_packet(gnrc_pktsnip_t* packet);
+
+void ara_handle_ant_packet(void);
 
 #ifdef  __cplusplus
 }
