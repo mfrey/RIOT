@@ -14,4 +14,5 @@ void tests_ara(void)
     TESTS_RUN(tests_ara_routingtable_tests());
     TESTS_RUN(tests_ara_evaporation_tests());
     TESTS_RUN(tests_ara_reinforcement_tests());
+    TESTS_RUN(tests_ara_packet_trap_tests());
 }

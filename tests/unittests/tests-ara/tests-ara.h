@@ -62,6 +62,13 @@ Test *tests_ara_reinforcement_tests(void);
 Test *tests_ara_routingtable_tests(void);
 
 /**
+ * @brief   Generates tests for the packet trap  functions of ARA
+ *
+ * @return  embUnit tests if successful, NULL if not.
+ */
+Test *tests_ara_packet_trap_tests(void);
+
+/**
  * @brief   Generates tests for ARA
  *
  * @return  embUnit tests if successful, NULL if not.
