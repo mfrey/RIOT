@@ -7,22 +7,11 @@
 
 #include "net/ipv6/addr.h"
 
-/**
- * The maxmimum packet length of a MQTTSN message in bytes.
- */
-#define MQTTSN_MAX_PACKET_LENGTH (255)
+#include "constants.h"
 
-/**
- * The maximum topic length. The constant '6' denotes the remaining 6 bytes
- * needed for the message.
- */
-#define MQTTSN_MAX_TOPIC_LENGTH (MQTTSN_MAX_PACKET_LENGTH - 6)
-
-/**
- * The maximum length of the wireless node id (which is used in the 
- * forwarder encapsulation).
- */
-#define MQTTSN_MAX_WIRELESS_NODE_ID_LENGTH (252)
+#ifdef __cpluslus
+extern "C" {
+#endif 
 
 typedef enum {
     MQTTSN_TYPE_ADVERTISE       = 0x00,
@@ -86,6 +75,18 @@ typedef enum {
 } mqttsn_topic_t;
 
 /**
+ * The MQTT-SN message header which is two or up to four octet large 
+ * and consists of a length and message type field. The length
+ * field is variable in size (1 to 3). This header only defines
+ * a length field of one octet. Hence, larger message headers
+ * have to specified seperatly.
+ */
+typedef struct __attribute__((packed)) {
+    uint8_t length;    /**< length of the message */
+    uint8_t msg_type;  /**< the type of the message */
+} mqttsn_msg_header_t;
+
+/**
  * The DISCONNECT message is sent by a client to indicate that it wants
  * to close the connection. The gateway will acknowledge the receipt of
  * the message by returning a DISCONNECT message to the client. A 
@@ -95,22 +96,19 @@ typedef enum {
  * gateway replies as well without a duration field.
  */
 typedef struct __attribute__((packed)) {
-    uint8_t length;
-    uint8_t msg_type;
+    mqttsn_msg_header_t header;
     uint16_t duration;
 } mqttsn_msg_disconnect_t;
 
 typedef struct __attribute__((packed)) {
-    uint8_t length;
-    uint8_t msg_type;
+    mqttsn_msg_header_t header;
     uint8_t flags;
     uint8_t protocol_identifier;
     uint16_t duration;
 } mqttsn_msg_connect_t;
 
 typedef struct __attribute__((packed)) {
-    uint8_t length;
-    uint8_t msg_type;
+    mqttsn_msg_header_t header;
     uint16_t topic_id;
     uint16_t msg_id;
 } mqttsn_msg_register_t;
@@ -119,33 +117,27 @@ typedef struct __attribute__((packed)) {
  *
  */
 typedef struct __attribute__((packed)) {
-    uint8_t length;
-    uint8_t msg_type;
+    mqttsn_msg_header_t header;
     uint16_t topic_id;
     uint16_t msg_id;
     uint8_t return_code;
 } mqttsn_msg_register_acknowledgement_t;
 
 typedef struct __attribute__((packed)) {
-    uint8_t length;
-    uint8_t msg_type;
+    mqttsn_msg_header_t header;
     uint8_t flags;
     uint16_t msg_id;
 } mqttsn_msg_subscribe_t;
 
 typedef struct __attribute__((packed)) {
-    uint8_t length;
-    uint8_t msg_type;
+    mqttsn_msg_header_t header;
     uint8_t flags;
     uint16_t topic_id;
     uint16_t msg_id;
 } mqttsn_msg_publish_t;
 
 typedef struct __attribute__((packed)) {
-    /** length of the packet up till the end of the wireless node id */
-    uint8_t length;            
-    /** type of the message */
-    uint8_t msg_type;              
+    mqttsn_msg_header_t header;
     /** control information exchanged between forwarder/gateway */
     uint8_t ctrl;           
     /** the wireless node identifier of this device */
@@ -159,8 +151,7 @@ typedef struct __attribute__((packed)) {
  * connection request from a client. 
  */
 typedef struct __attribute__((packed)) {
-    uint8_t length;      
-    uint8_t msg_type;    /**< */
+    mqttsn_msg_header_t header;
     uint8_t return_code; /**< */
 } mqttsn_msg_connack;
 
@@ -260,7 +251,35 @@ void mqttsn_subscribe_topic_name(const char* topic_name, size_t topic_length,  i
  */
 void mqttsn_publish(uint16_t topic_identifier, uint8_t topic_type, const void* data, size_t payload_size, int8_t qos, uint8_t retain);
 
+/**
+ * Returns a string representation of a given MQTT-SN message type.
+ *
+ * @param[in] msg_type The message type to transform into a string.
+ *
+ * @return Upon success the string representation of the given message type, on
+ * failure a message string containing a error message.
+ */
+const char* mqttsn_msg_type_to_string(uint8_t msg_type);
+
+/**
+ * Checks if a given node id is valid.
+ *
+ * @param[in] wireless_node_id The node id to check
+ * @param[in] wireless_node_length 
+ *
+ * @return 0 if the identifier is a valid identifier, -1 if it is not, -2 if the
+ * given length does not match and -3 if neither it is a valid id nor does the
+ * length match.
+ */
+uint8_t mqttsn_check_wireless_node_id(uint8_t *wireless_node_id, uint8_t wireless_node_length);
+
+void mqttsn_handle_register_msg(const mqttsn_msg_register_t *packet);
+void mqttsn_handle_register_acknowledgement_msg(const mqttsn_msg_register_acknowledgement_t *packet);
+
 void mqttsn_send(void *packet);
 
-uint8_t mqttsn_check_wireless_node_id(uint8_t *wireless_node_id, uint8_t wireless_node_length);
+#ifdef __cpluslus
+}
+#endif 
+
 #endif 
