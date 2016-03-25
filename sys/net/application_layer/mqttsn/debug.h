@@ -25,6 +25,17 @@
 extern "C" {
 #endif
 
+
+/**
+ * Returns a string representation of a given MQTT-SN return code.
+ *
+ * @param[in] return_code The return code to transform into a string.
+ *
+ * @return Upon success the string representation of the given return code, on
+ * failure a message string containing a error message.
+ */
+const char* mqttsn_debug_return_code_to_string(uint8_t return_code);
+
 /**
  * Returns a string representation of a given MQTT-SN message type.
  *
@@ -33,7 +44,7 @@ extern "C" {
  * @return Upon success the string representation of the given message type, on
  * failure a message string containing a error message.
  */
-const char* mqttsn_msg_type_to_string(uint8_t msg_type);
+const char* mqttsn_debug_msg_type_to_string(uint8_t msg_type);
 
 #ifdef __cplusplus
 }

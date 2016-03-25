@@ -6,21 +6,11 @@
 
 #include <byteorder.h>
 
-#include "net/gnrc.h"
-#include "net/gnrc/ipv6.h"
-#include "net/gnrc/udp.h"
-#include "net/gnrc/pktdump.h"
 
 #include "topic.h"
+#include "communication.h"
 
-static uint16_t msg_id = 1;
-static bool forward_encapsulation = false;
-static ipv6_addr_t source;
-static uint16_t source_port;
-static ipv6_addr_t destination;
-static uint16_t destination_port;
-uint8_t wireless_node_id[MQTTSN_MAX_WIRELESS_NODE_ID_LENGTH];  
-uint8_t wireless_node_length;
+static uint16_t message_id = 1;
 
 static uint8_t mqttsn_get_qos_flag(int8_t qos) 
 {
@@ -40,14 +30,8 @@ static uint8_t mqttsn_get_qos_flag(int8_t qos)
 
 void mqttsn_init(ipv6_addr_t src, uint16_t src_port, ipv6_addr_t dest, uint16_t dest_port, bool enable_forward_encapsulation) 
 {
-    source = src;
-    destination = dest;
-    source_port = src_port;
-    destination_port = dest_port;
-
-    forward_encapsulation = enable_forward_encapsulation;
-
-    
+    mqttsn_communication_init(src, src_port, dest, dest_port, enable_forward_encapsulation);
+    mqttsn_send = mqttsn_communication_send_udp;
 }
 
 
@@ -150,7 +134,7 @@ void mqttsn_register(const char *topic_name, size_t topic_length, uint16_t topic
     /** topic id is always 0x000 for clients */
     register_packet->topic_id = topic_id;
     /** get a new sequence number */
-    register_packet->msg_id = HTONS(msg_id++);
+    register_packet->msg_id = HTONS(message_id++);
     /** set the size of the packet */
     register_packet->header.length = 0x06 + topic_length;
 
@@ -197,7 +181,7 @@ void mqttsn_subscribe_topic_id(uint16_t topic_identifier, int8_t qos)
     subscribe_topic_packet->flags = 0x00;
     subscribe_topic_packet->flags += mqttsn_get_qos_flag(qos);
     subscribe_topic_packet->flags += MQTTSN_TOPIC_TYPE_PRE_DEFINED;
-    subscribe_topic_packet->msg_id = HTONS(msg_id++);
+    subscribe_topic_packet->msg_id = HTONS(message_id++);
     subscribe_topic_packet->header.length = 0x05 + 2;
 
     topic_identifier = HTONS(topic_identifier);
@@ -227,7 +211,7 @@ void mqttsn_subscribe_topic_name(const char* topic_name, size_t topic_length, in
     memset(subscribe_topic_packet, 0, sizeof(mqttsn_msg_subscribe_t));
 
     subscribe_topic_packet->header.msg_type = MQTTSN_TYPE_SUBSCRIBE;
-    subscribe_topic_packet->msg_id = HTONS(msg_id++);
+    subscribe_topic_packet->msg_id = HTONS(message_id++);
     subscribe_topic_packet->header.length = 0x05 + size;
 
     subscribe_topic_packet->flags = 0x00;
@@ -274,7 +258,7 @@ void mqttsn_publish(uint16_t topic_identifier, uint8_t topic_type, const void* d
     }
 
     publish_packet->flags += (topic_type & 0x3);
-    publish_packet->msg_id = HTONS(msg_id++);
+    publish_packet->msg_id = HTONS(message_id++);
     publish_packet->topic_id = HTONS(topic_identifier);
     publish_packet->header.length = 0x07 + size;
 
@@ -283,136 +267,6 @@ void mqttsn_publish(uint16_t topic_identifier, uint8_t topic_type, const void* d
     mqttsn_send(publish_packet);
 }
 
-
-void mqttsn_send(void *packet)
-{
-    /** the first octet always specifies the length of the packet */
-    size_t length = ((uint8_t*)packet)[0];
-
-    //gnrc_pktsnip_t *payload, *udp, *ip;
-    gnrc_pktsnip_t *payload;
-
-    // TODO: check if it makes sense to create a nettype for MQTT-SN
-    payload = gnrc_pktbuf_add(NULL, packet, length, GNRC_NETTYPE_UNDEF);
-    if (!payload) {
-#if ENABLE_DEBUG 
-        printf("could not add payload to packet buffer\n");
-#endif 
-        return;
-    }
-
-    /** check if forward encapsulation is enabled */
-    if (forward_encapsulation) {
-        /** the packet needs to be wrapped according to the specification */
-        mqttsn_msg_forward_encapsulation_t forward_encapsulation_packet;
-        /** set the wireless node id */
-        memcpy(&(forward_encapsulation_packet.wireless_node_id), wireless_node_id, wireless_node_length);
-        /** set the packet type */
-        forward_encapsulation_packet.header.msg_type = MQTTSN_TYPE_ENCMSG;
-        // TODO
-        forward_encapsulation_packet.ctrl = 0;
-        /** set the packet length of the forward encapsulation packet */
-        forward_encapsulation_packet.header.length = wireless_node_length + 3;
-
-        /** append forward encapsulation packet to */
-        gnrc_pktsnip_t *forward_encapsulation_payload = gnrc_pktbuf_add(payload, (void*)&forward_encapsulation_packet, 
-                forward_encapsulation_packet.header.length, GNRC_NETTYPE_UNDEF);
-        /** */
-        if (!forward_encapsulation_payload) {
-#if ENABLE_DEBUG 
-            printf("could not add forward encapsulation payload to packet buffer\n");
-#endif 
-            gnrc_pktbuf_release(payload);
-            return;
-        }
-
-        /** build udp header */
-//        udp = gnrc_udp_hdr_build(forward_encapsulation_payload, source_port, 2, destination_port, 2);
-    } else {
-        /** build udp header */
-  //      udp = gnrc_udp_hdr_build(payload, source_port, 2, destination_port, 2);
-    }
-
-   // if (!udp) {
-#if ENABLE_DEBUG 
-     //   printf("could not add udp header to packet buffer\n");
-#endif 
-       // gnrc_pktbuf_release(payload);
-      //  return;
-   // }
-
-    /** build ip header */
-//    ip = gnrc_ipv6_hdr_build(udp, NULL, 0, (uint8_t *)&destination, sizeof(destination));
-  //  if (!ip) {
-#if ENABLE_DEBUG 
-    //    printf("could not add ip header to packet buffer\n");
-#endif 
-      //  gnrc_pktbuf_release(udp);
-      //  return;
-   // }
-
-    /** send packet */
-   // if (!gnrc_netapi_dispatch_send(GNRC_NETTYPE_UDP, GNRC_NETREG_DEMUX_CTX_ALL, ip)) {
-#if ENABLE_DEBUG 
-    //    printf("Error: unable to locate UDP thread\n");
-#endif 
-      //  gnrc_pktbuf_release(ip);
-      //  return;
-   // }
-}
-
-uint8_t mqttsn_check_wireless_node_id(uint8_t *node_id, uint8_t node_length) {
-    if (node_length > MQTTSN_MAX_WIRELESS_NODE_ID_LENGTH) {
-#if ENABLE_DEBUG 
-        printf("the size of the wireless node identifier is too large. got: %d but maximum length is: %d !\n", node_length, MQTTSN_MAX_WIRELESS_NODE_ID_LENGTH);
-#endif 
-        return -1;
-    }
-
-    if ((!node_id) || (node_length == 0)) {
-        // TODO
-//        snprintf(wireless_node_id, sizeof(wireless_node_id)-1, "%X", mqttsn_get_wireless_node_id(void));
-  //      wireless_node_length = strnlen((char*)packet->wireless_node_id, MQTTSN_MAX_WIRELESS_NODE_ID_LENGTH);
-   // } else {
-//        memcpy(packet->wireless_node_id, wireless_node_id, wireless_node_length);
-    }
-
-    return 0;
-}
-
-const char* mqttsn_msg_type_to_string(uint8_t msg_type) 
-{
-    switch(msg_type) {
-        case MQTTSN_TYPE_ADVERTISE:       return "ADVERTISE";
-        case MQTTSN_TYPE_SEARCHGW:        return "SEARCHGW";
-        case MQTTSN_TYPE_GWINFO:          return "GWINFO";
-        case MQTTSN_TYPE_CONNECT:         return "CONECT";
-        case MQTTSN_TYPE_CONNACK:         return "CONACK";
-        case MQTTSN_TYPE_WILLTOPICREQ:    return "WILLTOPICREQ";
-        case MQTTSN_TYPE_WILLTOPIC:       return "WILLTOPIC";
-        case MQTTSN_TYPE_WILLMSGREQ:      return "WILLMSGREQ";
-        case MQTTSN_TYPE_WILLMSG:         return "WILLMSG";
-        case MQTTSN_TYPE_REGISTER:        return "REGISTER";
-        case MQTTSN_TYPE_REGACK:          return "REGACK";
-        case MQTTSN_TYPE_PUBLISH:         return "PUBLISH";
-        case MQTTSN_TYPE_PUBACK:          return "PUBACK";
-        case MQTTSN_TYPE_PUBCOMP:         return "PUBCOMP";
-        case MQTTSN_TYPE_PUBREC:          return "PUBREC";
-        case MQTTSN_TYPE_PUBREL:          return "PUBREL";
-        case MQTTSN_TYPE_SUBSCRIBE:       return "SUBSCRIBE";
-        case MQTTSN_TYPE_SUBACK:          return "SUBACK";
-        case MQTTSN_TYPE_UNSUBSCRIBE:     return "UNSUBSCRIBE";
-        case MQTTSN_TYPE_UNSUBACK:        return "UNSUBACK";
-        case MQTTSN_TYPE_PINGREQ:         return "PINGREQ";
-        case MQTTSN_TYPE_PINGRESP:        return "PINGRESP";
-        case MQTTSN_TYPE_DISCONNECT:      return "DISCONNECT";
-        case MQTTSN_TYPE_WILLTOPICUPD:    return "WILLTOPICUPD";
-        case MQTTSN_TYPE_WILLTOPICRESP:   return "WILLTOPICRESP";
-        case MQTTSN_TYPE_WILLMSGUPD:      return "WILMSGUPD";
-        case MQTTSN_TYPE_WILLMSGRESP:     return "WILLMSGRESP";
-        default:                          return "UNKNOWN MESSSAGE TYPE";
-    }
-}
 
 void mqttsn_handle_register_msg(const mqttsn_msg_register_t *packet) 
 {
@@ -435,17 +289,32 @@ void mqttsn_handle_register_msg(const mqttsn_msg_register_t *packet)
         // TODO: do we need to send a negativ ack?
     }
 
-    mqttsn_register_acknowledgement(topic_id, msg_id); 
+    mqttsn_register_acknowledgement(topic_identifier, msg_id); 
 }
 
-void mqttsn_handle_register_acknowledgement_msg(const mqttsn_msg_register_acknowledgement_t *packet) 
+uint16_t mqttsn_handle_register_acknowledgement_msg(const mqttsn_msg_register_acknowledgement_t *packet) 
 {
     uint16_t topic_id = NTOHS(packet->topic_id);
     uint16_t msg_id = NTOHS(packet->msg_id);
     uint8_t return_code = NTOHS(packet->return_code);
 
+    /** check if the message id matches */
+    if (msg_id != message_id -1) {
+
+    }
+
+    /** */
 
     if (return_code == MQTTSN_RETURN_CODE_REJECTED_CONGESTION) {
         // TODO: we have to wait T_WAIT before we try to re-register
     }
+
+    return topic_id;
 }
+
+/*
+uint8_t mqttsn_validate() 
+{
+
+}
+*/

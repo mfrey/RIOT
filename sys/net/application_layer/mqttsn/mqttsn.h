@@ -252,16 +252,6 @@ void mqttsn_subscribe_topic_name(const char* topic_name, size_t topic_length,  i
 void mqttsn_publish(uint16_t topic_identifier, uint8_t topic_type, const void* data, size_t payload_size, int8_t qos, uint8_t retain);
 
 /**
- * Returns a string representation of a given MQTT-SN message type.
- *
- * @param[in] msg_type The message type to transform into a string.
- *
- * @return Upon success the string representation of the given message type, on
- * failure a message string containing a error message.
- */
-const char* mqttsn_msg_type_to_string(uint8_t msg_type);
-
-/**
  * Checks if a given node id is valid.
  *
  * @param[in] wireless_node_id The node id to check
@@ -274,9 +264,27 @@ const char* mqttsn_msg_type_to_string(uint8_t msg_type);
 uint8_t mqttsn_check_wireless_node_id(uint8_t *wireless_node_id, uint8_t wireless_node_length);
 
 void mqttsn_handle_register_msg(const mqttsn_msg_register_t *packet);
-void mqttsn_handle_register_acknowledgement_msg(const mqttsn_msg_register_acknowledgement_t *packet);
 
-void mqttsn_send(void *packet);
+/**
+ * Handles the reception of a REGACK message.
+ *
+ * @param[in] packet The REGACK message received by the client.
+ *
+ * @return On success the topic identifier, upon failure TODO
+ */
+uint16_t mqttsn_handle_register_acknowledgement_msg(const mqttsn_msg_register_acknowledgement_t *packet);
+
+/**
+ * Sends MQTT-SN messages.
+ *
+ * The function pointer enables us to change the transport type at any point. The 
+ * MQTT-SN specifciation does not make any assumpations about the underlying transport 
+ * protocol. The default sender is UDP based and is set in the mqttsn_init
+ * function. 
+ *
+ * @param[in] packet The packet to send.
+ */
+void (*mqttsn_send)(void *packet);
 
 #ifdef __cpluslus
 }

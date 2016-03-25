@@ -20,7 +20,18 @@
 
 #include "mqttsn.h"
 
-const char* mqttsn_msg_type_to_string(uint8_t msg_type) 
+const char* mqttsn_debug_return_code_to_string(uint8_t return_code)
+{
+    switch(return_code) {
+        case MQTTSN_RETURN_CODE_ACCEPTED:                   return "Accepted";           
+        case MQTTSN_RETURN_CODE_REJECTED_CONGESTION:        return "Reected: congestion";
+        case MQTTSN_RETURN_CODE_REJECTED_INVALID_TOPIC:     return "Rejected: invalid topic ID";
+        case MQTTSN_RETURN_CODE_REJECTED_NOT_SUPPORTED:     return "Rejected: not supported";
+        default:                                            return "reserved";
+    }
+}
+
+const char* mqttsn_debug_msg_type_to_string(uint8_t msg_type) 
 {
     switch(msg_type) {
         case MQTTSN_TYPE_ADVERTISE:       return "ADVERTISE";

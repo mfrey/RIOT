@@ -49,6 +49,9 @@ endif
 ifneq (,$(filter nhdp,$(USEMODULE)))
     DIRS += net/routing/nhdp
 endif
+ifneq (,$(filter mqttsn,$(USEMODULE)))
+    DIRS += net/application_layer/mqttsn
+endif
 ifneq (,$(filter gnrc_netdev2,$(USEMODULE)))
     DIRS += net/gnrc/link_layer/netdev2
 endif

@@ -35,18 +35,14 @@ bool mqttsn_topic_add(uint16_t topic_identifier, const char* topic_name)
         return false;
     }
 
-    mqttsn_topic_entry_t *entry = malloc(sizeof(mqttsn_topic_t));
+    mqttsn_topic_entry_t entry;
 
-    if (entry) {
-        entry->topic_identifier = topic_identifier;
-        strncpy(entry->topic_name, topic_name, MQTTSN_MAX_TOPIC_LENGTH);
+    entry.topic_identifier = topic_identifier;
+    strncpy(entry.topic_name, topic_name, MQTTSN_MAX_TOPIC_LENGTH);
 
-        LL_APPEND(topics, entry);
+    LL_APPEND(topics, &entry);
 
-        return true;
-    }
-    
-    return false;
+    return true;
 }
 
 bool mqttsn_topic_valid_identifier(uint16_t topic_identifier) 
