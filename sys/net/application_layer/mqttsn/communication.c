@@ -123,25 +123,6 @@ void mqttsn_communication_send_udp(void *packet)
     }
 }
 
-uint8_t mqttsn_check_wireless_node_id(uint8_t *node_id, uint8_t node_length) {
-    if (node_length > MQTTSN_MAX_WIRELESS_NODE_ID_LENGTH) {
-#if ENABLE_DEBUG 
-        printf("the size of the wireless node identifier is too large. got: %d but maximum length is: %d !\n", node_length, MQTTSN_MAX_WIRELESS_NODE_ID_LENGTH);
-#endif 
-        return -1;
-    }
-
-    if ((!node_id) || (node_length == 0)) {
-        // TODO
-//        snprintf(wireless_node_id, sizeof(wireless_node_id)-1, "%X", mqttsn_get_wireless_node_id(void));
-  //      wireless_node_length = strnlen((char*)packet->wireless_node_id, MQTTSN_MAX_WIRELESS_NODE_ID_LENGTH);
-   // } else {
-//        memcpy(packet->wireless_node_id, wireless_node_id, wireless_node_length);
-    }
-
-    return 0;
-}
-
 #ifdef __cplusplus
 }
 #endif
