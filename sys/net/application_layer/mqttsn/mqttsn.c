@@ -10,7 +10,13 @@
 #include "topic.h"
 #include "communication.h"
 
+/** pid for the mqtt-sn process  */
+kernel_pid_t mqttsn_pid = KERNEL_PID_UNDEF;
+/** message queue for the mqtt-sn process */
+static char _mqttsn_stack[MQTTSN_STACK_SIZE];
+/** sequence number for mqtt-sn messages */
 static uint16_t message_id = 1;
+
 
 static uint8_t mqttsn_get_qos_flag(int8_t qos) 
 {
@@ -28,10 +34,44 @@ static uint8_t mqttsn_get_qos_flag(int8_t qos)
     }
 }
 
+static void *mqttsn_event_loop(void *args) 
+{
+    msg_t message; 
+    msg_t message_queue[MQTTSN_MSG_QUEUE_SIZE];
+
+    /** avoid the warning about the unused variable*/
+    (void)args;
+
+    if(msg_init_queue(message_queue, MQTTSN_MSG_QUEUE_SIZE) == -1){
+#if ENABLE_DEBUG 
+        printf("could not initialize message queue!\n");
+#endif 
+        return NULL;
+    }
+
+    while (1) {
+        msg_receive(&message);
+
+        switch (message.type) {
+            default:
+                break;
+        }
+    }
+
+    return NULL;
+}
+
 void mqttsn_init(ipv6_addr_t src, uint16_t src_port, ipv6_addr_t dest, uint16_t dest_port, bool enable_forward_encapsulation) 
 {
     mqttsn_communication_init(src, src_port, dest, dest_port, enable_forward_encapsulation);
     mqttsn_send = mqttsn_communication_send_udp;
+    mqttsn_receive = mqttsn_communication_receive_udp;
+
+    /* initialize the mqtt-sn thread */
+    if (mqttsn_pid == KERNEL_PID_UNDEF) {
+        mqttsn_pid = thread_create(_mqttsn_stack, sizeof(_mqttsn_stack), MQTTSN_PRIO,
+                THREAD_CREATE_STACKTEST, mqttsn_event_loop, NULL, "mqtt-sn");
+    }
 }
 
 
@@ -318,3 +358,14 @@ uint8_t mqttsn_validate()
 
 }
 */
+
+void mqttsn_handle_disconnect_msg(const mqttsn_msg_disconnect_t *packet) 
+{
+    if (packet) {
+        if (packet->header.length == 4) {
+
+        }
+    } else {
+
+    }
+}

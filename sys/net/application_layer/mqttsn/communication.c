@@ -19,23 +19,39 @@
 #include "communication.h" 
 #include "mqttsn.h"
 #include "constants.h"
+#include "device.h"
 
 #include "net/gnrc.h"
 #include "net/gnrc/ipv6.h"
 #include "net/gnrc/udp.h"
 #include "net/gnrc/pktdump.h"
 
+#include <string.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/** pid for the mqtt-sn process  */
+kernel_pid_t mqttsn_receiver_pid = KERNEL_PID_UNDEF;
+/** message queue for the mqtt-sn process */
+static char _mqttsn_receive_stack[MQTTSN_STACK_SIZE];
+/** */
 static bool forward_encapsulation = false;
+/** */
 static ipv6_addr_t source;
+/** */
 static uint16_t source_port;
+/** */
 static ipv6_addr_t destination;
+/** */
 static uint16_t destination_port;
-uint8_t wireless_node_id[MQTTSN_MAX_WIRELESS_NODE_ID_LENGTH];  
-uint8_t wireless_node_length;
+/** */
+static uint8_t wireless_node_id[MQTTSN_MAX_WIRELESS_NODE_ID_LENGTH];  
+/** */
+static uint8_t wireless_node_length;
+/***/
+static void* mqttsn_communication_receive_udp_event_loop(void *args);
 
 void mqttsn_communication_init(ipv6_addr_t src, uint16_t src_port, ipv6_addr_t dest, uint16_t dest_port, bool enable_forward_encapsulation)
 {
@@ -45,6 +61,14 @@ void mqttsn_communication_init(ipv6_addr_t src, uint16_t src_port, ipv6_addr_t d
     destination_port = dest_port;
 
     forward_encapsulation = enable_forward_encapsulation;
+
+    /** TODO: make this a parameter */
+    mqttsn_device_init(NULL, 0);
+    /** set the size */
+    wireless_node_length = mqttsn_device_get_node_length();
+    /** set the wireless node id */
+    memcpy(wireless_node_id, mqttsn_device_get_node(), wireless_node_length);
+
 }
 
 void mqttsn_communication_send_udp(void *packet)
@@ -122,6 +146,50 @@ void mqttsn_communication_send_udp(void *packet)
         return;
     }
 }
+
+void mqttsn_communication_receive_udp(void)
+{
+    /* initialize the mqtt-sn thread */
+    if (mqttsn_receiver_pid == KERNEL_PID_UNDEF) {
+        mqttsn_receiver_pid = thread_create(_mqttsn_receive_stack, sizeof(_mqttsn_receive_stack), MQTTSN_PRIO,
+                THREAD_CREATE_STACKTEST, mqttsn_communication_receive_udp_event_loop, NULL, "mqtt-sn receiver");
+    }
+}
+
+static void* mqttsn_communication_receive_udp_event_loop(void *args)
+{
+    msg_t message; 
+    msg_t message_queue[MQTTSN_MSG_QUEUE_SIZE];
+    gnrc_netreg_entry_t registration;
+
+    /** avoid the warning about the unused variable*/
+    (void)args;
+
+    registration.demux_ctx = GNRC_NETREG_DEMUX_CTX_ALL;
+    registration.pid = thread_getpid();
+    /** register interest in all udp packets */
+    gnrc_netreg_register(GNRC_NETTYPE_UDP, &registration);
+
+
+    if(msg_init_queue(message_queue, MQTTSN_MSG_QUEUE_SIZE) == -1){
+#if ENABLE_DEBUG 
+        printf("could not initialize message queue!\n");
+#endif 
+        return NULL;
+    }
+
+    while (1) {
+        msg_receive(&message);
+
+        switch (message.type) {
+            default:
+                break;
+        }
+    }
+
+    return NULL;
+}
+
 
 #ifdef __cplusplus
 }

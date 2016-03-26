@@ -27,6 +27,8 @@
 extern "C" {
 #endif
 
+void mqttsn_device_init(uint8_t *node_id, uint8_t node_length);
+
 uint8_t mqttsn_device_validate(uint8_t *node_id, uint8_t node_length);
 
 uint8_t mqttsn_device_get_node_length(void);

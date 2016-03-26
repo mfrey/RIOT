@@ -10,7 +10,6 @@ void mqttsn_topic_init(void)
 
 }
 
-
 bool mqttsn_topic_add(uint16_t topic_identifier, const char* topic_name)
 {
 

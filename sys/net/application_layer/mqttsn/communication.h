@@ -47,6 +47,12 @@ void mqttsn_communication_init(ipv6_addr_t src, uint16_t src_port, ipv6_addr_t d
  */
 void mqttsn_communication_send_udp(void *packet);
 
+/**
+ * Receives MQTT-SN messages over UDP. The function initializes a 
+ * thread which listens for UDP packets provided by GNRC.
+ */
+void mqttsn_communication_receive_udp(void);
+
 #ifdef __cplusplus
 }
 #endif

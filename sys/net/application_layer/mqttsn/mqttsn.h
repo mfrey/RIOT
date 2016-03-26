@@ -263,8 +263,6 @@ void mqttsn_publish(uint16_t topic_identifier, uint8_t topic_type, const void* d
  */
 uint8_t mqttsn_check_wireless_node_id(uint8_t *wireless_node_id, uint8_t wireless_node_length);
 
-void mqttsn_handle_register_msg(const mqttsn_msg_register_t *packet);
-
 /**
  * Handles the reception of a REGACK message.
  *
@@ -285,6 +283,19 @@ uint16_t mqttsn_handle_register_acknowledgement_msg(const mqttsn_msg_register_ac
  * @param[in] packet The packet to send.
  */
 void (*mqttsn_send)(void *packet);
+
+/**
+ * Receives MQTT-SN messages.
+ *
+ * Like in the mqttsn_send function, the function pointer enables us to change the 
+ * transport type at any point. The default receiver is UDP based and is set in the mqttsn_init
+ * function. 
+ *
+ */
+void (*mqttsn_receive)(void);
+
+
+void mqttsn_handle_register_msg(const mqttsn_msg_register_t *packet);
 
 #ifdef __cpluslus
 }
