@@ -1,0 +1,4 @@
+USEMODULE += mqttsn
+USEMODULE += gnrc
+INCLUDES += -I$(RIOTBASE)/sys/
+
