@@ -352,12 +352,64 @@ uint16_t mqttsn_handle_register_acknowledgement_msg(const mqttsn_msg_register_ac
     return topic_id;
 }
 
-/*
-uint8_t mqttsn_validate() 
+uint8_t mqttsn_validate(const void *data, size_t length) 
 {
+    const uint8_t *packet = data;
 
+    /** check the length of the packet header */
+    if (packet[0] == 0x00) {
+#if ENABLE_DEBUG 
+        printf("receive: invalid packet length header\n");
+#endif 
+        return -1;
+    }
+
+// TODO; do we need to check the size
+
+    /** size of the packet */
+    uint8_t packet_size = packet[0];
+    /** type of the packet */
+    uint8_t type = packet[1];
+
+    /** check if forward encapsulation is enabled */
+    if (mqttsn_communication_is_forwarder_encapsulation_enabled()) {
+        /** 
+         * while forward encapsulation is active, the packet is not
+         * encapsulated 
+         */
+        if (type != MQTTSN_TYPE_ENCMSG) {
+#if ENABLE_DEBUG 
+            printf("receive: forward encapsulation is enabled, but packet is not encapsulated.\n");
+#endif 
+            return -2;
+        /** 
+         * if forward encapsulation is enabled, also check the size of the
+         * packet vs. the received packet size  
+         */
+        } else {
+            packet_size = packet[0] + packet[packet[0]];
+            /** 
+             * size mismatch in the expected packet size vs. the actual packet
+             * size 
+             */
+            if (packet_size != length) { 
+#if ENABLE_DEBUG 
+                printf("receive: size mismatch in forward encapsulated packet \n");
+#endif 
+                return -3;
+            }
+        }
+    } else {
+        if (packet_size != length) {
+#if ENABLE_DEBUG 
+            printf("receive: size mismatch in packet \n");
+#endif
+            return -4;
+        }
+    }
+
+    return 0;
 }
-*/
 
 void mqttsn_handle_disconnect_msg(const mqttsn_msg_disconnect_t *packet) 
 {

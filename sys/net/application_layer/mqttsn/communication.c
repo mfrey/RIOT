@@ -190,6 +190,11 @@ static void* mqttsn_communication_receive_udp_event_loop(void *args)
     return NULL;
 }
 
+bool mqttsn_communication_is_forwarder_encapsulation_enabled(void) 
+{
+    return forward_encapsulation;
+}
+
 
 #ifdef __cplusplus
 }

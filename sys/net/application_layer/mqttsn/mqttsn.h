@@ -1,3 +1,22 @@
+/*
+ * Copyright (C) 2016 Michael Frey <mail@mfrey.net>
+ *
+ * This file is subject to the terms and conditions of the GNU Lesser
+ * General Public License v2.1. See the file LICENSE in the top level
+ * directory for more details.
+ */
+
+/**
+ * @ingroup     mqtt-sn
+ * @{
+ *
+ * @file        mqttsn.h
+ * @brief       Structs, enums, and functions for marshalling/unmarshalling MQTT-SN messages
+ *
+ * @author      Michael Frey <mail@mfrey.net>
+ */
+
+
 #ifndef MQTTSN_H_
 #define MQTTSN_H_
 
@@ -13,6 +32,9 @@
 extern "C" {
 #endif 
 
+/**
+ * @brief Defines the types (msg_type field) of  MQTT-SN messages.
+ */
 typedef enum {
     MQTTSN_TYPE_ADVERTISE       = 0x00,
     MQTTSN_TYPE_SEARCHGW        = 0x01,
@@ -290,12 +312,13 @@ void (*mqttsn_send)(void *packet);
  * Like in the mqttsn_send function, the function pointer enables us to change the 
  * transport type at any point. The default receiver is UDP based and is set in the mqttsn_init
  * function. 
- *
  */
 void (*mqttsn_receive)(void);
 
 
 void mqttsn_handle_register_msg(const mqttsn_msg_register_t *packet);
+
+uint8_t mqttsn_validate(const void *data, size_t length);
 
 #ifdef __cpluslus
 }

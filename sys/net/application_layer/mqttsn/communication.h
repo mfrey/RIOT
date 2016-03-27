@@ -53,6 +53,9 @@ void mqttsn_communication_send_udp(void *packet);
  */
 void mqttsn_communication_receive_udp(void);
 
+bool mqttsn_communication_is_forwarder_encapsulation_enabled(void);
+
+
 #ifdef __cplusplus
 }
 #endif
