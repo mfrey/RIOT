@@ -58,8 +58,12 @@ bool mqttsn_topic_valid_name(const char *topic_name);
  */
 bool mqttsn_topic_contains(uint16_t topic_identifier);
 
-const char* mqttsn_topic_get(uint16_t topic_identifier);
+/**
+ * @brief Removes all topics from the map.
+ */
+void mqttsn_topic_clear(void);
 
+const char* mqttsn_topic_get(uint16_t topic_identifier);
 
 #ifdef __cpluslus
 }

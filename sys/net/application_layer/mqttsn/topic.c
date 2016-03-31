@@ -86,3 +86,12 @@ const char* mqttsn_topic_get(uint16_t topic_identifier) {
     return NULL;
 }
 
+void mqttsn_topic_clear(void) 
+{
+    mqttsn_topic_entry_t *entry, *tmp;
+
+    LL_FOREACH_SAFE(topics, entry, tmp) {
+        LL_DELETE(topics, entry);
+        // if we allocated the entries we have to free them here
+    }
+}
