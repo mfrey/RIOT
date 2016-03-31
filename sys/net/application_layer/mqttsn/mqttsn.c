@@ -8,6 +8,7 @@
 
 
 #include "topic.h"
+#include "gateway.h"
 #include "communication.h"
 
 /** pid for the mqtt-sn process  */
@@ -353,36 +354,6 @@ uint16_t mqttsn_handle_register_acknowledgement_msg(const mqttsn_msg_register_ac
     return topic_id;
 }
 
-void* mqttsn_receive(void) 
-{
-    // TODO
-    uint8_t data[1024];
-
-
-    if (mqttsn_validate(data, length) == 0) { 
-        // TODO: check
-        if (mqttsn_communication_is_forwarder_encapsulation_enabled()) {
-            /** type of the packet */
-            uint8_t type = packet[1];
-
-            /** if the packet is encapsulated, set pointer to its payload */
-            if (type == MQTTSN_TYPE_ENCMSG) {
-                data = data + data[0];
-            }
-        }
-        /** TODO: set the last time we received a packet */
-
-        return data;
-    } else {
-#if ENABLE_DEBUG 
-        printf("receive: could not parse packet.\n");
-#endif 
-        return NULL;
-    }
-
-    return NULL;
-}
-
 uint8_t mqttsn_validate(const void *data, size_t length) 
 {
     const uint8_t *packet = data;
@@ -442,10 +413,10 @@ uint8_t mqttsn_validate(const void *data, size_t length)
     return 0;
 }
 
-void mqttsn_handle_advertise_msg(const mqttsn_msg_advertise_t *packet, ipv6_addr_t *address) 
+void mqttsn_handle_advertise_msg(const mqttsn_msg_advertise_t *packet, ipv6_addr_t address) 
 {
     /** add the gateway to the gateways list */
-    if (!mqttsn_advertise_add(packet->gw_id, address, packet->duration)) {
+    if (!mqttsn_gateway_add(packet->gw_id, address, packet->duration)) {
 #if ENABLE_DEBUG 
         printf("could not add gateway to gateways list\n");
 #endif
@@ -470,7 +441,7 @@ void mqttsn_handle_searchgw_msg(const mqttsn_msg_searchgw_t *packet)
     /** check if the packet has to be broadcasted (radius is not exceedded) */
 
     /** check if there is at least one gateway in the gateways list */
-    if (mqttsn_gateways_size() <= 0) {
+    if (mqttsn_gateway_size() <= 0) {
 #if ENABLE_DEBUG 
         printf("there are no gateways available\n");
 #endif
@@ -491,7 +462,7 @@ void mqttsn_handle_searchgw_msg(const mqttsn_msg_searchgw_t *packet)
     // TODO: set gw address
 
     /** send GWINFO message */
-    // mqttsn_send(&gwinfo_packet);
+     mqttsn_send(&gwinfo_packet);
 }
 
 void mqttsn_handle_disconnect_msg(const mqttsn_msg_disconnect_t *packet) 

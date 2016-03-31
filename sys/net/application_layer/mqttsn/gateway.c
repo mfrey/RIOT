@@ -16,6 +16,7 @@
  * @author      Michael Frey <mail@mfrey.net>
  */
 
+#include "gateway.h"
 
 static mqttsn_gateway_entry_t *gateways = NULL;
 
@@ -25,10 +26,10 @@ void mqttsn_gateway_init(void)
 }
 
 
-bool mqttsn_gateway_add(ipv6_addr_t address, uint16_t duration) 
+bool mqttsn_gateway_add(uint8_t gw_id, ipv6_addr_t address, uint16_t duration) 
 {
 
-    if (mqttsn_gateway_contains(topic_identifier)) {
+    if (mqttsn_gateway_contains(address)) {
 #if ENABLE_DEBUG 
         printf("there is already a gateway registered with this ipv6 address!\n");
 #endif 
@@ -36,21 +37,25 @@ bool mqttsn_gateway_add(ipv6_addr_t address, uint16_t duration)
     }
     
     mqttsn_gateway_entry_t entry;
+    entry.gw_id = gw_id;
     entry.address = address;
     entry.duration = duration;
 
 // TODO: howto manage last access time 
 
     LL_APPEND(gateways, &entry);
+
+    return true;
 }
 
 
 bool mqttsn_gateway_contains(ipv6_addr_t address) 
 {
-    mqttsn_gateway_entry_t *result;
-
+    mqttsn_gateway_entry_t *result = NULL;
+    // TODO: temporary
+    (void)address;
     // TODO: wondering if this is going to work
-    LL_SEARCH_SCALAR(gateways, result, address, ipv6_addr_equal);
+//    LL_SEARCH_SCALAR(gateways, result, address, ipv6_addr_equal);
 
     return (result != NULL);
 }

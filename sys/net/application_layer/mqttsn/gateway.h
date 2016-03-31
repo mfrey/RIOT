@@ -37,6 +37,8 @@ extern "C" {
  * A list element for a list of MQTT-SN gateways
  */
 typedef struct mqttsn_gateway {
+    /** the gateway id of the gateway */
+    uint8_t gw_id;
     /** the address of the gateway */
     ipv6_addr_t address;        
     /** the gateway interval of gateway */
@@ -47,7 +49,7 @@ typedef struct mqttsn_gateway {
 
 void mqttsn_gateway_init(void);
 
-bool mqttsn_gateway_add(ipv6_addr_t address, uint16_t duration);
+bool mqttsn_gateway_add(uint8_t gw_id, ipv6_addr_t address, uint16_t duration);
 
 /**
  * Checks if the given topic id is a valid topic id 
@@ -74,7 +76,7 @@ bool mqttsn_gateway_add(ipv6_addr_t address, uint16_t duration);
  * @return True if there is a topic registered with the given id, false
  * otherwise.
  */
-bool mqttsn_gateway_contains(uint16_t topic_identifier);
+bool mqttsn_gateway_contains(ipv6_addr_t address);
 
 // The correct return value?
 

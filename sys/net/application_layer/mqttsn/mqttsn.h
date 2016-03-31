@@ -372,7 +372,7 @@ uint8_t mqttsn_validate(const void *data, size_t length);
  * @param[in] packet The received ADVERTISE message
  * @param[in] address The address of the gateway
  */
-void mqttsn_handle_advertise_msg(const mqttsn_msg_advertise_t *packet, ipv6_addr_t *address) 
+void mqttsn_handle_advertise_msg(const mqttsn_msg_advertise_t *packet, ipv6_addr_t address);
 
 /**
  * Sets the broadcast radius for SEARCHGW and GWINFO messages. In dense deployments, the
