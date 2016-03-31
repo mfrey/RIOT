@@ -16,7 +16,8 @@ kernel_pid_t mqttsn_pid = KERNEL_PID_UNDEF;
 static char _mqttsn_stack[MQTTSN_STACK_SIZE];
 /** sequence number for mqtt-sn messages */
 static uint16_t message_id = 1;
-
+/** defines the radius for SEARCHGW and GWINFO messages */
+static uint8_t radius = -1;
 
 static uint8_t mqttsn_get_qos_flag(int8_t qos) 
 {
@@ -352,6 +353,36 @@ uint16_t mqttsn_handle_register_acknowledgement_msg(const mqttsn_msg_register_ac
     return topic_id;
 }
 
+void* mqttsn_receive(void) 
+{
+    // TODO
+    uint8_t data[1024];
+
+
+    if (mqttsn_validate(data, length) == 0) { 
+        // TODO: check
+        if (mqttsn_communication_is_forwarder_encapsulation_enabled()) {
+            /** type of the packet */
+            uint8_t type = packet[1];
+
+            /** if the packet is encapsulated, set pointer to its payload */
+            if (type == MQTTSN_TYPE_ENCMSG) {
+                data = data + data[0];
+            }
+        }
+        /** TODO: set the last time we received a packet */
+
+        return data;
+    } else {
+#if ENABLE_DEBUG 
+        printf("receive: could not parse packet.\n");
+#endif 
+        return NULL;
+    }
+
+    return NULL;
+}
+
 uint8_t mqttsn_validate(const void *data, size_t length) 
 {
     const uint8_t *packet = data;
@@ -411,6 +442,58 @@ uint8_t mqttsn_validate(const void *data, size_t length)
     return 0;
 }
 
+void mqttsn_handle_advertise_msg(const mqttsn_msg_advertise_t *packet, ipv6_addr_t *address) 
+{
+    /** add the gateway to the gateways list */
+    if (!mqttsn_advertise_add(packet->gw_id, address, packet->duration)) {
+#if ENABLE_DEBUG 
+        printf("could not add gateway to gateways list\n");
+#endif
+        return;
+    }
+}
+
+void mqttsn_search_gateway(void)
+{
+    mqttsn_msg_searchgw_t searchgw_packet;
+
+    searchgw_packet.header.length = 0x03;
+    searchgw_packet.header.msg_type = MQTTSN_TYPE_SEARCHGW;
+    searchgw_packet.radius = radius;
+
+    mqttsn_send(&searchgw_packet);
+}
+
+void mqttsn_handle_searchgw_msg(const mqttsn_msg_searchgw_t *packet) 
+{
+
+    /** check if the packet has to be broadcasted (radius is not exceedded) */
+
+    /** check if there is at least one gateway in the gateways list */
+    if (mqttsn_gateways_size() <= 0) {
+#if ENABLE_DEBUG 
+        printf("there are no gateways available\n");
+#endif
+        return;
+    }
+
+    /** get the most recently added gateway */
+
+
+    /** build GWINFO message */
+    mqttsn_msg_gwinfo_t gwinfo_packet;
+    
+    // TODO: sizeof(address)
+    gwinfo_packet.header.length = 0x03 + 0x00;
+    gwinfo_packet.header.msg_type = 0x02,
+    // TODO
+    gwinfo_packet.gw_id = -1;
+    // TODO: set gw address
+
+    /** send GWINFO message */
+    // mqttsn_send(&gwinfo_packet);
+}
+
 void mqttsn_handle_disconnect_msg(const mqttsn_msg_disconnect_t *packet) 
 {
     if (packet) {
@@ -419,5 +502,54 @@ void mqttsn_handle_disconnect_msg(const mqttsn_msg_disconnect_t *packet)
         }
     } else {
 
+    }
+}
+
+void mqttsn_set_radius(uint8_t msg_radius) 
+{
+    radius = msg_radius;
+}
+
+void mqttsn_handle_msg(void *data, ipv6_addr_t source) 
+{
+    
+    uint8_t msg_type = (uint8_t)data[1];
+
+    switch(msg_type) {
+        case MQTTSN_TYPE_ADVERTISE:      
+            const mqttsn_msg_advertise_t *packet = (mqttsn_msg_advertise_t*)data;
+            mqttsn_handle_advertise_msg(packet, source);
+        case MQTTSN_TYPE_SEARCHGW:        
+            const mqttsn_msg_searchgw_t *packet = (mqttsn_msg_searchgw_t*)data; 
+            mqttsn_handle_searchgw_msg(packet);
+        case MQTTSN_TYPE_GWINFO:   
+        case MQTTSN_TYPE_CONNECT:   
+        case MQTTSN_TYPE_CONNACK:    
+        case MQTTSN_TYPE_WILLTOPICREQ:   
+        case MQTTSN_TYPE_WILLTOPIC:    
+        case MQTTSN_TYPE_WILLMSGREQ:    
+        case MQTTSN_TYPE_WILLMSG:    
+        case MQTTSN_TYPE_REGISTER:  
+        case MQTTSN_TYPE_REGACK:    
+            const mqttsn_msg_register_acknowledgement_t *packet = (mqttsn_msg_register_acknowledgement_t*)data; 
+            mqttsn_handle_register_acknowledgement_msg(packet);
+        case MQTTSN_TYPE_PUBLISH:    
+        case MQTTSN_TYPE_PUBACK:   
+        case MQTTSN_TYPE_PUBCOMP:  
+        case MQTTSN_TYPE_PUBREC:    
+        case MQTTSN_TYPE_PUBREL:     
+        case MQTTSN_TYPE_SUBSCRIBE:      
+        case MQTTSN_TYPE_SUBACK:         
+        case MQTTSN_TYPE_UNSUBSCRIBE:  
+        case MQTTSN_TYPE_UNSUBACK:
+        case MQTTSN_TYPE_PINGREQ:   
+        case MQTTSN_TYPE_PINGRESP:        
+        case MQTTSN_TYPE_DISCONNECT:      
+        case MQTTSN_TYPE_WILLTOPICUPD:    
+        case MQTTSN_TYPE_WILLTOPICRESP:  
+        case MQTTSN_TYPE_WILLMSGUPD:      
+        case MQTTSN_TYPE_WILLMSGRESP:    
+        default:                          
+            break;
     }
 }

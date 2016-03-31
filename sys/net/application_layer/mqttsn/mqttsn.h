@@ -122,6 +122,34 @@ typedef struct __attribute__((packed)) {
     uint16_t duration;
 } mqttsn_msg_disconnect_t;
 
+/**
+ * The ADVERTISE message is periodically broadcasted by a gateway to 
+ * advertise its presence. 
+ */
+typedef struct __attribute__((packed)) {
+    mqttsn_msg_header_t header;
+    uint8_t gw_id;              /**< the gateway id of the gateway */
+    uint16_t duration;          /**< the time interval until the next broadcast of the gateway */
+} mqttsn_msg_advertise_t;
+
+/**
+ * The SEARCHGW message is sent by a client in order to find a gateway.
+ */
+typedef struct __attribute__((packed)) {
+    mqttsn_msg_header_t header;
+    uint16_t radius;            /**< the radius the message is broadcasted */
+} mqttsn_msg_searchgw_t;
+
+/**
+ * The GWINFO message is sent in response to SEARCHGW message. If it is sent by a gateway,
+ * it only contains the gateway id, otherwise, if sent by a client it also
+ * contains the address of the gateway.
+ */
+typedef struct __attribute__((packed)) {
+    mqttsn_msg_header_t header;
+    uint8_t gw_id;              /**< the gateway id of the gateway */
+} mqttsn_msg_gwinfo_t;
+
 typedef struct __attribute__((packed)) {
     mqttsn_msg_header_t header;
     uint8_t flags;
@@ -224,6 +252,11 @@ void mqttsn_disconnect(void);
 void mqttsn_ping_request(void);
 
 /**
+ * Sends a SEARCHGW message in order to find a gateway.
+ */    
+void mqttsn_search_gateway(void);
+
+/**
  * Requests a topic id value for the given topic name (REGISTER message).
  *
  * @param[in] topic_name The name of the topic
@@ -315,10 +348,45 @@ void (*mqttsn_send)(void *packet);
  */
 void (*mqttsn_receive)(void);
 
+/**
+ * Performs various checks to verify that the packet is a well-formed MQTT-SN
+ * message.
+ *
+ * @param[in] data The data received from the network stack
+ * @param[in] length The size of the data
+ *
+ * @return 0 upon success, -1 if packet length is invalid, -2 if forward
+ * encapsulation is enabled, but the packet is not encapsulated, -3 if there is
+ * a size mismatch in the encapsulated packet, and -4 if the given size does 
+ * not actually match the size of the packet.
+ */
+uint8_t mqttsn_validate(const void *data, size_t length);
+
+/**
+ * Handles ADVERTISE messages. The function simply adds gateways to its internal
+ * gateway list. The actions specified in section 6.1 of the MQTT-SN
+ * specification happen in the advertise.c file.
+ *
+ * TODO: address parameter
+ *
+ * @param[in] packet The received ADVERTISE message
+ * @param[in] address The address of the gateway
+ */
+void mqttsn_handle_advertise_msg(const mqttsn_msg_advertise_t *packet, ipv6_addr_t *address) 
+
+/**
+ * Sets the broadcast radius for SEARCHGW and GWINFO messages. In dense deployments, the
+ * radius should be set to 1.
+ *
+ * @param[in] msg_radius The broadcast radius to set.
+ */
+void mqttsn_set_radius(uint8_t msg_radius);
+
+
+void mqttsn_handle_searchgw_msg(const mqttsn_msg_searchgw_t *packet);
 
 void mqttsn_handle_register_msg(const mqttsn_msg_register_t *packet);
 
-uint8_t mqttsn_validate(const void *data, size_t length);
 
 #ifdef __cpluslus
 }
