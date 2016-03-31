@@ -11,7 +11,7 @@
  * @{
  *
  * @file        communication.c
- * @brief       ARA routing protocol
+ * @brief       Functions to send and receive MQTT-SN messages
  *
  * @author      Michael Frey <mail@mfrey.net>
  */

@@ -64,4 +64,3 @@ const char* mqttsn_debug_msg_type_to_string(uint8_t msg_type)
         default:                          return "UNKNOWN MESSSAGE TYPE";
     }
 }
-
