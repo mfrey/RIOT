@@ -8,7 +8,7 @@
 
 #include "tests-mqttsn.h"
 
-#include "net/application_layer/mqttsn/device.h"
+#include "mqttsn/device.h"
 
 static void test_mqttsn_device_get_node_length_test(void)
 {

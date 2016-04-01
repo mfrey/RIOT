@@ -1,4 +1,3 @@
 USEMODULE += mqttsn
-USEMODULE += gnrc
-INCLUDES += -I$(RIOTBASE)/sys/
+INCLUDES += -I$(RIOTBASE)/sys/net/application_layer/
 

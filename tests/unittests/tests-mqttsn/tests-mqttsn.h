@@ -20,8 +20,8 @@
 
 #include "embUnit.h"
 
-#include "net/application_layer/mqttsn.h"
-#include "net/application_layer/constants.h"
+#include "mqttsn/mqttsn.h"
+#include "mqttsn/constants.h"
 
 #ifdef __cplusplus
 extern "C" {
