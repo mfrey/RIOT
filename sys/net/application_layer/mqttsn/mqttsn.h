@@ -327,26 +327,7 @@ uint8_t mqttsn_check_wireless_node_id(uint8_t *wireless_node_id, uint8_t wireles
  */
 uint16_t mqttsn_handle_register_acknowledgement_msg(const mqttsn_msg_register_acknowledgement_t *packet);
 
-/**
- * Sends MQTT-SN messages.
- *
- * The function pointer enables us to change the transport type at any point. The 
- * MQTT-SN specifciation does not make any assumpations about the underlying transport 
- * protocol. The default sender is UDP based and is set in the mqttsn_init
- * function. 
- *
- * @param[in] packet The packet to send.
- */
-void (*mqttsn_send)(void *packet);
 
-/**
- * Receives MQTT-SN messages.
- *
- * Like in the mqttsn_send function, the function pointer enables us to change the 
- * transport type at any point. The default receiver is UDP based and is set in the mqttsn_init
- * function. 
- */
-void (*mqttsn_receive)(void);
 
 /**
  * Performs various checks to verify that the packet is a well-formed MQTT-SN
@@ -372,7 +353,7 @@ uint8_t mqttsn_validate(const void *data, size_t length);
  * @param[in] packet The received ADVERTISE message
  * @param[in] address The address of the gateway
  */
-void mqttsn_handle_advertise_msg(const mqttsn_msg_advertise_t *packet, ipv6_addr_t address);
+void mqttsn_handle_advertise_msg(const mqttsn_msg_advertise_t *packet, ipv6_addr_t *address);
 
 /**
  * Sets the broadcast radius for SEARCHGW and GWINFO messages. In dense deployments, the
@@ -382,12 +363,15 @@ void mqttsn_handle_advertise_msg(const mqttsn_msg_advertise_t *packet, ipv6_addr
  */
 void mqttsn_set_radius(uint8_t msg_radius);
 
-
-void mqttsn_handle_searchgw_msg(const mqttsn_msg_searchgw_t *packet);
+void mqttsn_handle_searchgw_msg(const mqttsn_msg_searchgw_t *packet, ipv6_addr_t* source);
 
 void mqttsn_handle_register_msg(const mqttsn_msg_register_t *packet);
 
-void mqttsn_handle_msg(void *data, uint8_t msg_type, ipv6_addr_t source);
+void mqttsn_handle_msg(char *data, ipv6_addr_t *source);
+
+uint8_t mqttsn_get_radius(void);
+
+uint8_t mqttsn_get_type(void *data);
 
 #ifdef __cpluslus
 }

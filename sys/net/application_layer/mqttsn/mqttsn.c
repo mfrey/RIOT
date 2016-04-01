@@ -20,6 +20,28 @@ static uint16_t message_id = 1;
 /** defines the radius for SEARCHGW and GWINFO messages */
 static uint8_t radius = -1;
 
+/**
+ * Sends MQTT-SN messages.
+ *
+ * The function pointer enables us to change the transport type at any point. The 
+ * MQTT-SN specifciation does not make any assumpations about the underlying transport 
+ * protocol. The default sender is UDP based and is set in the mqttsn_init
+ * function. 
+ *
+ * @param[in] packet The packet to send.
+ */
+void (*mqttsn_send)(void *packet);
+
+/**
+ * Receives MQTT-SN messages.
+ *
+ * Like in the mqttsn_send function, the function pointer enables us to change the 
+ * transport type at any point. The default receiver is UDP based and is set in the mqttsn_init
+ * function. 
+ */
+void (*mqttsn_receive)(void);
+
+
 static uint8_t mqttsn_get_qos_flag(int8_t qos) 
 {
     switch (qos) {
@@ -413,7 +435,7 @@ uint8_t mqttsn_validate(const void *data, size_t length)
     return 0;
 }
 
-void mqttsn_handle_advertise_msg(const mqttsn_msg_advertise_t *packet, ipv6_addr_t address) 
+void mqttsn_handle_advertise_msg(const mqttsn_msg_advertise_t *packet, ipv6_addr_t *address) 
 {
     /** add the gateway to the gateways list */
     if (!mqttsn_gateway_add(packet->gw_id, address, packet->duration)) {
@@ -435,11 +457,8 @@ void mqttsn_search_gateway(void)
     mqttsn_send(&searchgw_packet);
 }
 
-void mqttsn_handle_searchgw_msg(const mqttsn_msg_searchgw_t *packet) 
+void mqttsn_handle_searchgw_msg(const mqttsn_msg_searchgw_t *packet, ipv6_addr_t* source)
 {
-
-    /** check if the packet has to be broadcasted (radius is not exceedded) */
-
     /** check if there is at least one gateway in the gateways list */
     if (mqttsn_gateway_size() <= 0) {
 #if ENABLE_DEBUG 
@@ -449,20 +468,32 @@ void mqttsn_handle_searchgw_msg(const mqttsn_msg_searchgw_t *packet)
     }
 
     /** get the most recently added gateway */
+    mqttsn_gateway_entry_t* entry = mqttsn_gateway_get_most_recent_entry();
 
+    if (entry) {
+        /** length(0) + msg_type(1) + gw_id(2) + gw_add(3:131 */
+        uint8_t length = 0x02 + 0x01 + sizeof(ipv6_addr_t);
+        /** raw packet */ 
+        char data[length];
 
-    /** build GWINFO message */
-    mqttsn_msg_gwinfo_t gwinfo_packet;
-    
-    // TODO: sizeof(address)
-    gwinfo_packet.header.length = 0x03 + 0x00;
-    gwinfo_packet.header.msg_type = 0x02,
-    // TODO
-    gwinfo_packet.gw_id = -1;
-    // TODO: set gw address
+        /** build GWINFO message */
+        mqttsn_msg_gwinfo_t *gwinfo_packet = (mqttsn_msg_gwinfo_t*)data;
+        /** set the length of the message */
+        gwinfo_packet->header.length = length;
+        /** set the message type */
+        gwinfo_packet->header.msg_type = MQTTSN_TYPE_GWINFO;
+        /** set the gw_id */
+        gwinfo_packet->gw_id = entry->gw_id;
+        /** set gw address */
+        memcpy((gwinfo_packet) + 1, source, sizeof(ipv6_addr_t));
 
-    /** send GWINFO message */
-     mqttsn_send(&gwinfo_packet);
+        /** send GWINFO message */
+        mqttsn_send(gwinfo_packet);
+    } else {
+#if ENABLE_DEBUG 
+        printf("this should actually not happen! could not find a gateway for GWINFO message\n");
+#endif
+    }
 }
 
 void mqttsn_handle_disconnect_msg(const mqttsn_msg_disconnect_t *packet) 
@@ -476,21 +507,45 @@ void mqttsn_handle_disconnect_msg(const mqttsn_msg_disconnect_t *packet)
     }
 }
 
+// TODO: consider fwd'encapsulation 
+uint8_t mqttsn_get_type(void *data)
+{
+    uint8_t type = 0;
+    /** need the length field in order to find the position of the type field */
+    size_t length = ((uint8_t*)data)[0];
+
+    /** 
+     * if the length is set to 0x01, it is actually 3 octets long (see MQTT-SN
+     * specification section 5.2.1 
+     */
+    if (length == 0x01) {
+        type = ((uint8_t*)data)[3];
+    } else {
+        type = ((uint8_t*)data)[1];
+    }
+
+    return type;
+}
+
 void mqttsn_set_radius(uint8_t msg_radius) 
 {
     radius = msg_radius;
 }
 
-void mqttsn_handle_msg(void *data, uint8_t msg_type, ipv6_addr_t source) 
+uint8_t mqttsn_get_radius(void) 
 {
-    
-//    uint8_t msg_type = (uint8_t)data[1];
+    return radius;
+}
+
+void mqttsn_handle_msg(char *data, ipv6_addr_t *source) 
+{
+    uint8_t msg_type = mqttsn_get_type((void*)data);
 
     switch(msg_type) {
         case MQTTSN_TYPE_ADVERTISE:      
             mqttsn_handle_advertise_msg((mqttsn_msg_advertise_t*)data, source);
         case MQTTSN_TYPE_SEARCHGW:        
-            mqttsn_handle_searchgw_msg((mqttsn_msg_searchgw_t*)data);
+            mqttsn_handle_searchgw_msg((mqttsn_msg_searchgw_t*)data, source);
         case MQTTSN_TYPE_GWINFO:   
         case MQTTSN_TYPE_CONNECT:   
         case MQTTSN_TYPE_CONNACK:    

@@ -23,6 +23,7 @@
 
 #include "net/gnrc.h"
 #include "net/gnrc/ipv6.h"
+#include "net/gnrc/nettype.h"
 #include "net/gnrc/udp.h"
 #include "net/gnrc/pktdump.h"
 
@@ -52,6 +53,8 @@ static uint8_t wireless_node_id[MQTTSN_MAX_WIRELESS_NODE_ID_LENGTH];
 static uint8_t wireless_node_length;
 /***/
 static void* mqttsn_communication_receive_udp_event_loop(void *args);
+/***/
+static bool mqttsn_communication_is_udp_packet(char *data);
 
 void mqttsn_communication_init(ipv6_addr_t src, uint16_t src_port, ipv6_addr_t dest, uint16_t dest_port, bool enable_forward_encapsulation)
 {
@@ -75,6 +78,8 @@ void mqttsn_communication_send_udp(void *packet)
 {
     /** the first octet always specifies the length of the packet */
     size_t length = ((uint8_t*)packet)[0];
+    /** retrieve the type of the packet */
+    uint8_t type = mqttsn_get_type(packet);
 
     gnrc_pktsnip_t *payload, *udp, *ip;
 
@@ -137,6 +142,15 @@ void mqttsn_communication_send_udp(void *packet)
         return;
     }
 
+    /**
+     * The 'broadcast radius' (see section 6.1 of the MQTT-SN specification)
+     * indicates to how many hops a packet is forwarded.
+     */
+    if ((type == MQTTSN_TYPE_SEARCHGW) || (type == MQTTSN_TYPE_GWINFO)) {
+        // TODO: forward encapsulation? what to do?
+        ((ipv6_hdr_t*)ip->data)->hl = mqttsn_get_radius();
+    }
+
     /** send packet */
     if (!gnrc_netapi_dispatch_send(GNRC_NETTYPE_UDP, GNRC_NETREG_DEMUX_CTX_ALL, ip)) {
 #if ENABLE_DEBUG 
@@ -182,12 +196,26 @@ static void* mqttsn_communication_receive_udp_event_loop(void *args)
         msg_receive(&message);
 
         switch (message.type) {
+            case GNRC_NETAPI_MSG_TYPE_RCV:
+                /** is the received packet a udp packet */
+                if (mqttsn_communication_is_udp_packet(message.content.ptr)) {
+                    ipv6_addr_t *source = NULL;
+                    /** pass the payload of the udp packet to mqtt-sn */
+                    mqttsn_handle_msg(message.content.ptr, source);
+                }
+                break;
             default:
                 break;
         }
     }
 
     return NULL;
+}
+
+static bool mqttsn_communication_is_udp_packet(char *data) 
+{
+    gnrc_pktsnip_t *packet = (gnrc_pktsnip_t *)data;
+    return (packet->type == GNRC_NETTYPE_UDP);
 }
 
 bool mqttsn_communication_is_forwarder_encapsulation_enabled(void) 

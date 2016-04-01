@@ -26,7 +26,7 @@ void mqttsn_gateway_init(void)
 }
 
 
-bool mqttsn_gateway_add(uint8_t gw_id, ipv6_addr_t address, uint16_t duration) 
+bool mqttsn_gateway_add(uint8_t gw_id, ipv6_addr_t *address, uint16_t duration) 
 {
 
     if (mqttsn_gateway_contains(address)) {
@@ -38,7 +38,7 @@ bool mqttsn_gateway_add(uint8_t gw_id, ipv6_addr_t address, uint16_t duration)
     
     mqttsn_gateway_entry_t entry;
     entry.gw_id = gw_id;
-    entry.address = address;
+    entry.address = *address;
     entry.duration = duration;
 
 // TODO: howto manage last access time 
@@ -49,13 +49,26 @@ bool mqttsn_gateway_add(uint8_t gw_id, ipv6_addr_t address, uint16_t duration)
 }
 
 
-bool mqttsn_gateway_contains(ipv6_addr_t address) 
+mqttsn_gateway_entry_t* mqttsn_gateway_get_most_recent_entry(void) 
+{
+    return NULL;
+}
+
+/*
+static int mqttsn_gateway_compare(mqttsn_gateway_entry_t *first, mqttsn_gateway_entry_t  *second) 
+{
+    return (ipv6_addr_equal((const ipv6_addr_t*)first->address, (const ipv6_addr-t*)second->address));
+}
+*/
+
+
+bool mqttsn_gateway_contains(ipv6_addr_t *address) 
 {
     mqttsn_gateway_entry_t *result = NULL;
     // TODO: temporary
-    (void)address;
+    (void*)address;
     // TODO: wondering if this is going to work
-//    LL_SEARCH_SCALAR(gateways, result, address, ipv6_addr_equal);
+ //   LL_SEARCH_SCALAR(gateways, result, address, mqttsn_gateway_compare);
 
     return (result != NULL);
 }

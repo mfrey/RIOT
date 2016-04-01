@@ -49,7 +49,7 @@ typedef struct mqttsn_gateway {
 
 void mqttsn_gateway_init(void);
 
-bool mqttsn_gateway_add(uint8_t gw_id, ipv6_addr_t address, uint16_t duration);
+bool mqttsn_gateway_add(uint8_t gw_id, ipv6_addr_t *address, uint16_t duration);
 
 /**
  * Checks if the given topic id is a valid topic id 
@@ -76,7 +76,7 @@ bool mqttsn_gateway_add(uint8_t gw_id, ipv6_addr_t address, uint16_t duration);
  * @return True if there is a topic registered with the given id, false
  * otherwise.
  */
-bool mqttsn_gateway_contains(ipv6_addr_t address);
+bool mqttsn_gateway_contains(ipv6_addr_t *address);
 
 // The correct return value?
 
@@ -93,6 +93,16 @@ uint8_t mqttsn_gateway_size(void);
  */
 void mqttsn_gateway_clear(void);
 
+/**
+ * Returns the most recently added gateway entry. The function is used by the 
+ * mqttsn_handle_searchgw_msg() function. The specification leaves it open 
+ * which gateway is returned to a client via the GWINFO packet (see also section
+ * 6.1 of the MQTT-SN specification).
+ *
+ * @return Upon success the most recent added active gateway, NULL if there are
+ * no active gateways.
+ */
+mqttsn_gateway_entry_t* mqttsn_gateway_get_most_recent_entry(void);
 
 #ifdef __cpluslus
 }

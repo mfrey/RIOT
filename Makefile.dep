@@ -10,6 +10,11 @@ ifneq (,$(filter ccn-lite,$(USEPKG)))
     export CFLAGS += -DCCNL_RIOT
 endif
 
+ifneq (,$(filter mqttsn,$(USEMODULE)))
+  USEMODULE += gnrc
+  USEMODULE += gnrc_udp
+  USEMODULE += gnrc_ipv6
+endif
 
 ifneq (,$(filter nhdp,$(USEMODULE)))
   USEMODULE += conn_udp
