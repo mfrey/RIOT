@@ -481,18 +481,16 @@ void mqttsn_set_radius(uint8_t msg_radius)
     radius = msg_radius;
 }
 
-void mqttsn_handle_msg(void *data, ipv6_addr_t source) 
+void mqttsn_handle_msg(void *data, uint8_t msg_type, ipv6_addr_t source) 
 {
     
-    uint8_t msg_type = (uint8_t)data[1];
+//    uint8_t msg_type = (uint8_t)data[1];
 
     switch(msg_type) {
         case MQTTSN_TYPE_ADVERTISE:      
-            const mqttsn_msg_advertise_t *packet = (mqttsn_msg_advertise_t*)data;
-            mqttsn_handle_advertise_msg(packet, source);
+            mqttsn_handle_advertise_msg((mqttsn_msg_advertise_t*)data, source);
         case MQTTSN_TYPE_SEARCHGW:        
-            const mqttsn_msg_searchgw_t *packet = (mqttsn_msg_searchgw_t*)data; 
-            mqttsn_handle_searchgw_msg(packet);
+            mqttsn_handle_searchgw_msg((mqttsn_msg_searchgw_t*)data);
         case MQTTSN_TYPE_GWINFO:   
         case MQTTSN_TYPE_CONNECT:   
         case MQTTSN_TYPE_CONNACK:    
@@ -502,8 +500,7 @@ void mqttsn_handle_msg(void *data, ipv6_addr_t source)
         case MQTTSN_TYPE_WILLMSG:    
         case MQTTSN_TYPE_REGISTER:  
         case MQTTSN_TYPE_REGACK:    
-            const mqttsn_msg_register_acknowledgement_t *packet = (mqttsn_msg_register_acknowledgement_t*)data; 
-            mqttsn_handle_register_acknowledgement_msg(packet);
+            mqttsn_handle_register_acknowledgement_msg((mqttsn_msg_register_acknowledgement_t*)data); 
         case MQTTSN_TYPE_PUBLISH:    
         case MQTTSN_TYPE_PUBACK:   
         case MQTTSN_TYPE_PUBCOMP:  

@@ -387,6 +387,7 @@ void mqttsn_handle_searchgw_msg(const mqttsn_msg_searchgw_t *packet);
 
 void mqttsn_handle_register_msg(const mqttsn_msg_register_t *packet);
 
+void mqttsn_handle_msg(void *data, uint8_t msg_type, ipv6_addr_t source);
 
 #ifdef __cpluslus
 }
