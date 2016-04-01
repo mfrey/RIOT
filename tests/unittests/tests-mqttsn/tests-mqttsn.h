@@ -32,12 +32,21 @@ extern "C" {
  */
 void tests_mqttsn(void);
 
+void tests_mqttsn_dummy_send(void *data);
+
 /**
  * @brief   Generates tests for the device functions of MQTT-SN
  *
  * @return  embUnit tests if successful, NULL if not.
  */
 Test *tests_mqttsn_device_tests(void);
+
+/**
+ * @brief   Generates tests for MQTT-SN messages
+ *
+ * @return  embUnit tests if successful, NULL if not.
+ */
+Test *tests_mqttsn_messages_tests(void);
 
 /**
  * @brief   Generates tests for ARA
