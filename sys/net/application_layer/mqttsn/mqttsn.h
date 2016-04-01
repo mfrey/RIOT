@@ -373,6 +373,8 @@ uint8_t mqttsn_get_radius(void);
 
 uint8_t mqttsn_get_type(void *data);
 
+void mqttsn_set_mqttsn_send(void (*function)(void*));
+
 #ifdef __cpluslus
 }
 #endif 

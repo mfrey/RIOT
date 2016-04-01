@@ -71,7 +71,6 @@ void mqttsn_communication_init(ipv6_addr_t src, uint16_t src_port, ipv6_addr_t d
     wireless_node_length = mqttsn_device_get_node_length();
     /** set the wireless node id */
     memcpy(wireless_node_id, mqttsn_device_get_node(), wireless_node_length);
-
 }
 
 void mqttsn_communication_send_udp(void *packet)

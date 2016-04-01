@@ -576,3 +576,8 @@ void mqttsn_handle_msg(char *data, ipv6_addr_t *source)
             break;
     }
 }
+
+void mqttsn_set_mqttsn_send(void (*function)(void*))
+{
+    mqttsn_send = function;
+}

@@ -79,7 +79,7 @@ uint8_t mqttsn_device_get_node_length(void)
     return wireless_node_length;
 }
 
-uint8_t* mqttsn_device_get_nodh(void)
+uint8_t* mqttsn_device_get_node(void)
 {
     return wireless_node_id;
 }

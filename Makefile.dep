@@ -12,6 +12,7 @@ endif
 
 ifneq (,$(filter mqttsn,$(USEMODULE)))
   USEMODULE += gnrc
+  USEMODULE += random
   USEMODULE += gnrc_udp
   USEMODULE += gnrc_ipv6
 endif
