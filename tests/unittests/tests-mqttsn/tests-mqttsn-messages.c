@@ -41,15 +41,37 @@ static void test_mqttsn_ping_request(void)
     TEST_ASSERT_EQUAL_INT(packet[1], MQTTSN_TYPE_PINGREQ);
 }
 
-static void test_mqttsn_messages_dummy(void)
+static void test_mqttsn_search_gateway(void) 
 {
+    mqttsn_search_gateway();
+    TEST_ASSERT_EQUAL_INT(packet[0], 3);
+    TEST_ASSERT_EQUAL_INT(packet[1], MQTTSN_TYPE_SEARCHGW);
+    TEST_ASSERT_EQUAL_INT(packet[2], MQTTSN_DEFAULT_RADIUS);
+}
 
+static void test_mqttsn_search_gateway_with_specified_radius(void) 
+{
+    uint16_t broadcast_radius = 42;
+    mqttsn_set_radius(broadcast_radius);
+    mqttsn_search_gateway();
+    TEST_ASSERT_EQUAL_INT(packet[0], 3);
+    TEST_ASSERT_EQUAL_INT(packet[1], MQTTSN_TYPE_SEARCHGW);
+    TEST_ASSERT_EQUAL_INT(packet[2], broadcast_radius);
+}
+
+static void test_mqttsn_disconnect(void) 
+{
+    mqttsn_disconnect();
+    TEST_ASSERT_EQUAL_INT(packet[0], 2);
+    TEST_ASSERT_EQUAL_INT(packet[1], MQTTSN_TYPE_DISCONNECT);
 }
 
 Test *tests_mqttsn_messages_tests(void) 
 {
     EMB_UNIT_TESTFIXTURES(fixtures) {
-        new_TestFixture(test_mqttsn_messages_dummy),
+        new_TestFixture(test_mqttsn_search_gateway),
+        new_TestFixture(test_mqttsn_disconnect),
+        new_TestFixture(test_mqttsn_search_gateway_with_specified_radius),
         new_TestFixture(test_mqttsn_ping_request)
     };
 
