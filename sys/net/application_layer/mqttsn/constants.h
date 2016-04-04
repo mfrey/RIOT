@@ -122,5 +122,11 @@
 #define MQTTSN_MSG_QUEUE_SIZE  (8U)
 #endif
 
+/**
+ * @brief   Default broadcast radius for SEARCHGW, GWINFO mqtt-sn messages
+ */
+#ifndef MQTTSN_DEFAULT_RADIUS
+#define MQTTSN_DEFAULT_RADIUS (1)
+#endif
 
 #endif 
