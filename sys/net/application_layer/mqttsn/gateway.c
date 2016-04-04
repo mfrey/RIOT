@@ -20,6 +20,7 @@
 
 static mqttsn_gateway_entry_t *gateways = NULL;
 
+
 void mqttsn_gateway_init(void) 
 {
 
@@ -38,7 +39,7 @@ bool mqttsn_gateway_add(uint8_t gw_id, ipv6_addr_t *address, uint16_t duration)
     
     mqttsn_gateway_entry_t entry;
     entry.gw_id = gw_id;
-    entry.address = *address;
+    entry.address = address;
     entry.duration = duration;
 
 // TODO: howto manage last access time 
@@ -54,21 +55,22 @@ mqttsn_gateway_entry_t* mqttsn_gateway_get_most_recent_entry(void)
     return NULL;
 }
 
-/*
-static int mqttsn_gateway_compare(mqttsn_gateway_entry_t *first, mqttsn_gateway_entry_t  *second) 
+
+uint8_t mqttsn_gateway_compare(mqttsn_gateway_entry_t *first, mqttsn_gateway_entry_t *second) 
 {
-    return (ipv6_addr_equal((const ipv6_addr_t*)first->address, (const ipv6_addr-t*)second->address));
+    return (ipv6_addr_equal(first->address, second->address));
 }
-*/
+
 
 
 bool mqttsn_gateway_contains(ipv6_addr_t *address) 
 {
     mqttsn_gateway_entry_t *result = NULL;
-    // TODO: temporary
-    (void*)address;
-    // TODO: wondering if this is going to work
- //   LL_SEARCH_SCALAR(gateways, result, address, mqttsn_gateway_compare);
+    /** put the address into a element which is used for the comparison*/
+    mqttsn_gateway_entry_t like;
+    like.address = address;
+    /** search the linke list for the address */
+    LL_SEARCH(gateways, result, &like, mqttsn_gateway_compare);
 
     return (result != NULL);
 }

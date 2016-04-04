@@ -40,7 +40,7 @@ typedef struct mqttsn_gateway {
     /** the gateway id of the gateway */
     uint8_t gw_id;
     /** the address of the gateway */
-    ipv6_addr_t address;        
+    ipv6_addr_t *address;        
     /** the gateway interval of gateway */
     uint16_t duration;
     /** pointer to the next gateway in the list */
@@ -103,6 +103,8 @@ void mqttsn_gateway_clear(void);
  * no active gateways.
  */
 mqttsn_gateway_entry_t* mqttsn_gateway_get_most_recent_entry(void);
+
+uint8_t mqttsn_gateway_compare(mqttsn_gateway_entry_t *first, mqttsn_gateway_entry_t *second);
 
 #ifdef __cpluslus
 }
