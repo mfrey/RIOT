@@ -327,8 +327,6 @@ uint8_t mqttsn_check_wireless_node_id(uint8_t *wireless_node_id, uint8_t wireles
  */
 uint16_t mqttsn_handle_register_acknowledgement_msg(const mqttsn_msg_register_acknowledgement_t *packet);
 
-
-
 /**
  * Performs various checks to verify that the packet is a well-formed MQTT-SN
  * message.
@@ -363,7 +361,7 @@ void mqttsn_handle_advertise_msg(const mqttsn_msg_advertise_t *packet, ipv6_addr
  */
 void mqttsn_set_radius(uint8_t msg_radius);
 
-void mqttsn_handle_searchgw_msg(const mqttsn_msg_searchgw_t *packet, ipv6_addr_t* source);
+void mqttsn_handle_searchgw_msg(ipv6_addr_t* source);
 
 void mqttsn_handle_register_msg(const mqttsn_msg_register_t *packet);
 

@@ -18,7 +18,7 @@ static char _mqttsn_stack[MQTTSN_STACK_SIZE];
 /** sequence number for mqtt-sn messages */
 static uint16_t message_id = 1;
 /** defines the radius for SEARCHGW and GWINFO messages */
-static uint8_t radius = -1;
+static uint8_t radius = MQTTSN_DEFAULT_RADIUS;
 
 /**
  * Sends MQTT-SN messages.
@@ -457,7 +457,7 @@ void mqttsn_search_gateway(void)
     mqttsn_send(&searchgw_packet);
 }
 
-void mqttsn_handle_searchgw_msg(const mqttsn_msg_searchgw_t *packet, ipv6_addr_t* source)
+void mqttsn_handle_searchgw_msg(ipv6_addr_t* source)
 {
     /** check if there is at least one gateway in the gateways list */
     if (mqttsn_gateway_size() <= 0) {
@@ -545,7 +545,7 @@ void mqttsn_handle_msg(char *data, ipv6_addr_t *source)
         case MQTTSN_TYPE_ADVERTISE:      
             mqttsn_handle_advertise_msg((mqttsn_msg_advertise_t*)data, source);
         case MQTTSN_TYPE_SEARCHGW:        
-            mqttsn_handle_searchgw_msg((mqttsn_msg_searchgw_t*)data, source);
+            mqttsn_handle_searchgw_msg(source);
         case MQTTSN_TYPE_GWINFO:   
         case MQTTSN_TYPE_CONNECT:   
         case MQTTSN_TYPE_CONNACK:    
