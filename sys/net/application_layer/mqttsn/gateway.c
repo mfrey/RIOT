@@ -18,12 +18,12 @@
 
 #include "gateway.h"
 
-static mqttsn_gateway_entry_t *gateways = NULL;
-
+static uint8_t current_entry = 0;
+static mqttsn_gateway_entry_t gateways[MQTTSN_DEFAULT_GATEWAY_SIZE];
 
 void mqttsn_gateway_init(void) 
 {
-
+    memset(&gateways, 0, MQTTSN_DEFAULT_GATEWAY_SIZE);
 }
 
 
@@ -39,12 +39,13 @@ bool mqttsn_gateway_add(uint8_t gw_id, ipv6_addr_t *address, uint16_t duration)
     
     mqttsn_gateway_entry_t entry;
     entry.gw_id = gw_id;
-    entry.address = address;
+    entry.address = *address;
     entry.duration = duration;
 
 // TODO: howto manage last access time 
+    gateways[current_entry] = entry;
 
-    LL_APPEND(gateways, &entry);
+    current_entry++;
 
     return true;
 }
@@ -52,46 +53,31 @@ bool mqttsn_gateway_add(uint8_t gw_id, ipv6_addr_t *address, uint16_t duration)
 
 mqttsn_gateway_entry_t* mqttsn_gateway_get_most_recent_entry(void) 
 {
-    return NULL;
+    return &(gateways[current_entry]);
 }
-
-
-uint8_t mqttsn_gateway_compare(mqttsn_gateway_entry_t *first, mqttsn_gateway_entry_t *second) 
-{
-    return (ipv6_addr_equal(first->address, second->address));
-}
-
-
 
 bool mqttsn_gateway_contains(ipv6_addr_t *address) 
 {
-    mqttsn_gateway_entry_t *result = NULL;
-    /** put the address into a element which is used for the comparison*/
-    mqttsn_gateway_entry_t like;
-    like.address = address;
-    /** search the linke list for the address */
-    LL_SEARCH(gateways, result, &like, mqttsn_gateway_compare);
+    for (int i = 0; i <= current_entry; i++) {
+        mqttsn_gateway_entry_t entry = gateways[i];
 
-    return (result != NULL);
+        if (ipv6_addr_equal(&(entry.address), address)) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 
 
 uint8_t mqttsn_gateway_size(void)
 {
-    uint8_t size = 0;
-    mqttsn_gateway_entry_t *entry;
-
-    LL_COUNT(gateways, entry, size);
-
-    return size;
+    return current_entry;
 }
 
 void mqttsn_gateway_clear(void) 
 {
-    mqttsn_gateway_entry_t *entry, *tmp;
-
-    LL_FOREACH_SAFE(gateways, entry, tmp) {
-        LL_DELETE(gateways, entry);
-    }
+    memset(&gateways, 0, MQTTSN_DEFAULT_GATEWAY_SIZE);
+    current_entry = 0;
 }

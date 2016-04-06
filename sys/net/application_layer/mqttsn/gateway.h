@@ -40,11 +40,9 @@ typedef struct mqttsn_gateway {
     /** the gateway id of the gateway */
     uint8_t gw_id;
     /** the address of the gateway */
-    ipv6_addr_t *address;        
+    ipv6_addr_t address;        
     /** the gateway interval of gateway */
     uint16_t duration;
-    /** pointer to the next gateway in the list */
-    struct mqttsn_gateway *next;
 } mqttsn_gateway_entry_t;
 
 void mqttsn_gateway_init(void);

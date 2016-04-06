@@ -116,17 +116,24 @@
 #endif
 
 /**
- * @brief   Default message queue size to use for the mqtt-sn thred.
+ * @brief   Default message queue size to use for the MQTT-SN thred.
  */
 #ifndef MQTTSN_MSG_QUEUE_SIZE
 #define MQTTSN_MSG_QUEUE_SIZE  (8U)
 #endif
 
 /**
- * @brief   Default broadcast radius for SEARCHGW, GWINFO mqtt-sn messages
+ * @brief   Default broadcast radius for SEARCHGW, GWINFO MQTT-SN messages
  */
 #ifndef MQTTSN_DEFAULT_RADIUS
 #define MQTTSN_DEFAULT_RADIUS (1)
+#endif
+
+/**
+ * @brief   Default number of gateways a MQTT-SN client can store  
+ */
+#ifndef MQTTSN_DEFAULT_GATEWAY_SIZE
+#define MQTTSN_DEFAULT_GATEWAY_SIZE (5)
 #endif
 
 #endif 
