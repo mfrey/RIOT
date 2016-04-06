@@ -48,6 +48,8 @@ Test *tests_mqttsn_device_tests(void);
  */
 Test *tests_mqttsn_messages_tests(void);
 
+Test *tests_mqttsn_gateway_tests(void);
+
 /**
  * @brief   Generates tests for ARA
  *
