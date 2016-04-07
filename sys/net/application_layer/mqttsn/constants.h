@@ -136,4 +136,18 @@
 #define MQTTSN_DEFAULT_GATEWAY_SIZE (5)
 #endif
 
+/**
+ * @brief   Default size of WILL messages of a MQTT-SN client
+ */
+#ifndef MQTTSN_DEFAULT_WILL_MESSAGE_SIZE
+#define MQTTSN_DEFAULT_WILL_MESSAGE_SIZE (5)
+#endif
+
+/**
+ * @brief   Default size of WILL topics of a MQTT-SN client
+ */
+#ifndef MQTTSN_DEFAULT_WILL_TOPIC_SIZE
+#define MQTTSN_DEFAULT_WILL_TOPIC_SIZE (5)
+#endif
+
 #endif 

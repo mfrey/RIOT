@@ -409,6 +409,12 @@ void mqttsn_handle_connack_msg(const mqttsn_msg_return_code_t *packet);
 void mqttsn_handle_willtopicresp(const mqttsn_msg_return_code_t *packet);
 void mqttsn_parse_return_code(uint8_t return_code);
 
+/**
+ * Sends a ping response (PINGRESP) messages  in reply to a ping request
+ * (PINGREQ) message.
+ */
+void mqttsn_ping_response(void);
+
 #ifdef __cpluslus
 }
 #endif 

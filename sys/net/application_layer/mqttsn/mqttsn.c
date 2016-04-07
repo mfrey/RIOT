@@ -181,8 +181,22 @@ void mqttsn_ping_request(void)
     ping_request_packet[0] = 2;
     /** the type of the packet */
     ping_request_packet[1] = MQTTSN_TYPE_PINGREQ;
+
+    // TODO: add optional client id
+
     /** send the packet */
     mqttsn_send(&ping_request_packet);
+}
+
+void mqttsn_ping_response(void) 
+{
+    char ping_response_packet[2];
+    /** the length of the packet */
+    ping_response_packet[0] = 2;
+    /** the type of the packet */
+    ping_response_packet[1] = MQTTSN_TYPE_PINGRESP;
+
+    mqttsn_send(&ping_response_packet);
 }
 
 void mqttsn_register(const char *topic_name, size_t topic_length, uint16_t topic_id) 
@@ -619,6 +633,8 @@ void mqttsn_handle_msg(char *data, ipv6_addr_t *source)
         case MQTTSN_TYPE_UNSUBSCRIBE:  
         case MQTTSN_TYPE_UNSUBACK:
         case MQTTSN_TYPE_PINGREQ:   
+            mqttsn_ping_response();
+            break;
         case MQTTSN_TYPE_PINGRESP:        
         case MQTTSN_TYPE_DISCONNECT:      
         case MQTTSN_TYPE_WILLTOPICUPD:    
