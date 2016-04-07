@@ -8,6 +8,7 @@
 
 
 #include "topic.h"
+#include "debug.h"
 #include "gateway.h"
 #include "communication.h"
 
@@ -20,6 +21,8 @@ static uint16_t message_id = 1;
 /** defines the radius for SEARCHGW and GWINFO messages */
 static uint8_t radius = MQTTSN_DEFAULT_RADIUS;
 
+static char will_msg[MQTTSN_DEFAULT_WILL_MESSAGE_SIZE];
+static char will_topic[MQTTSN_DEFAULT_WILL_TOPIC_SIZE];
 /**
  * Sends MQTT-SN messages.
  *
@@ -99,7 +102,7 @@ void mqttsn_init(ipv6_addr_t src, uint16_t src_port, ipv6_addr_t dest, uint16_t 
 }
 
 
-void mqttsn_connect(const char* client_identifier, size_t client_identifier_length, uint16_t duration, bool clean_session) {
+void mqttsn_connect(const char* client_identifier, size_t client_identifier_length, bool will,  uint16_t duration, bool clean_session) {
     /** 
      * check if client identifier is not set or larger than 23 bytes (the maximum
      * length) 
@@ -124,8 +127,13 @@ void mqttsn_connect(const char* client_identifier, size_t client_identifier_leng
     connect_packet->header.msg_type = MQTTSN_TYPE_CONNECT;
     connect_packet->flags = 0;
 
+    // TODO: htons?
+    if (will) { 
+        connect_packet->flags = MQTTSN_FLAG_WILL;
+    }
+
     if (clean_session) {
-        connect_packet->flags = MQTTSN_FLAG_CLEAN_SESSION;
+        connect_packet->flags += MQTTSN_FLAG_CLEAN_SESSION;
     }
 
     connect_packet->protocol_identifier = 0x01;
@@ -527,6 +535,36 @@ uint8_t mqttsn_get_type(void *data)
     return type;
 }
 
+
+void mqttsn_will_topic(void) 
+{
+    /** actual length of the packet */
+    size_t size = 0x06 + MQTTSN_DEFAULT_WILL_TOPIC_SIZE;
+
+    /** raw packet */ 
+    char data[size];
+    /** map the char raw packet to the packte structure */
+    mqttsn_msg_willtopic_t *will_packet = (mqttsn_msg_willtopic_t*)data;
+
+    will_packet->header.length = size;
+    will_packet->header.msg_type = MQTTSN_TYPE_WILLTOPIC;
+    
+    // TODO
+    will_packet->flags = 0;
+
+    /** set the will  */
+    memcpy((will_packet+1), will_topic, MQTTSN_DEFAULT_WILL_TOPIC_SIZE);
+
+    // TODO
+
+    mqttsn_send(will_packet);
+}
+
+void mqttsn_handle_will_topic_request_msg(void) 
+{
+    return;
+}
+
 void mqttsn_set_radius(uint8_t msg_radius) 
 {
     radius = msg_radius;
@@ -549,13 +587,28 @@ void mqttsn_handle_msg(char *data, ipv6_addr_t *source)
         case MQTTSN_TYPE_GWINFO:   
         case MQTTSN_TYPE_CONNECT:   
         case MQTTSN_TYPE_CONNACK:    
+            mqttsn_handle_connack_msg((mqttsn_msg_return_code_t*)data); 
+            break;
         case MQTTSN_TYPE_WILLTOPICREQ:   
+            /**
+             * A MQTT-SN client responses upon reception of a WILLTOPICREG
+             * message by sending a WILLTOPIC message.
+             */
+            mqttsn_will_topic();
+            break;
         case MQTTSN_TYPE_WILLTOPIC:    
         case MQTTSN_TYPE_WILLMSGREQ:    
+            /**
+             * A MQTT-SN client responses upon reception of a WILLMSGREQ
+             * message by sending a WILLMSG.
+             */
+            mqttsn_will();
+            break;
         case MQTTSN_TYPE_WILLMSG:    
         case MQTTSN_TYPE_REGISTER:  
         case MQTTSN_TYPE_REGACK:    
             mqttsn_handle_register_acknowledgement_msg((mqttsn_msg_register_acknowledgement_t*)data); 
+            break;
         case MQTTSN_TYPE_PUBLISH:    
         case MQTTSN_TYPE_PUBACK:   
         case MQTTSN_TYPE_PUBCOMP:  
@@ -570,11 +623,71 @@ void mqttsn_handle_msg(char *data, ipv6_addr_t *source)
         case MQTTSN_TYPE_DISCONNECT:      
         case MQTTSN_TYPE_WILLTOPICUPD:    
         case MQTTSN_TYPE_WILLTOPICRESP:  
+            mqttsn_handle_willtopicresp((mqttsn_msg_return_code_t *)data);
+            break;
         case MQTTSN_TYPE_WILLMSGUPD:      
         case MQTTSN_TYPE_WILLMSGRESP:    
+            mqttsn_handle_willmsgresp((mqttsn_msg_return_code_t*)data);
+            break;
         default:                          
             break;
     }
+}
+
+void mqttsn_handle_willmsgresp(const mqttsn_msg_return_code_t *packet) 
+{
+    uint8_t return_code = NTOHS(packet->return_code);
+    mqttsn_parse_return_code(return_code); 
+}
+
+void mqttsn_handle_willtopicresp(const mqttsn_msg_return_code_t *packet) 
+{
+    uint8_t return_code = NTOHS(packet->return_code);
+    mqttsn_parse_return_code(return_code); 
+}
+
+void mqttsn_handle_connack_msg(const mqttsn_msg_return_code_t *packet) 
+{
+    uint8_t return_code = NTOHS(packet->return_code);
+    mqttsn_parse_return_code(return_code); 
+}
+
+void mqttsn_parse_return_code(uint8_t return_code) 
+{
+    if (return_code != MQTTSN_RETURN_CODE_ACCEPTED) {
+#if ENABLE_DEBUG 
+        printf("could not handle message. reason %s \n", mqttsn_debug_return_code_to_string(return_code));
+#endif
+        return;
+    }
+}
+
+void mqttsn_will_topic_delete(void) 
+{
+    char will_topic_delete_packet[2];
+    /** the length of the packet */
+    will_topic_delete_packet[0] = 2;
+    /** the type of the packet */
+    will_topic_delete_packet[1] = MQTTSN_TYPE_WILLTOPIC;
+    /** send the packet */
+    mqttsn_send(&will_topic_delete_packet);
+}
+
+void mqttsn_will(void)
+{
+    /** size of the packet */
+    size_t size = 0x02 + MQTTSN_DEFAULT_WILL_MESSAGE_SIZE;
+    char data[size];
+
+    /** WILL messages consist only of a mqttsn_header and the WILL message */
+    mqttsn_msg_header_t *will_packet = (mqttsn_msg_header_t*)data;
+
+    will_packet->length = size;
+    will_packet->msg_type = MQTTSN_TYPE_WILLMSG;
+
+    memcpy(will_packet+1, will_msg, MQTTSN_DEFAULT_WILL_MESSAGE_SIZE);
+
+    mqttsn_send(will_packet);
 }
 
 void mqttsn_set_mqttsn_send(void (*function)(void*))

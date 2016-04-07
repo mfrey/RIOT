@@ -164,6 +164,15 @@ typedef struct __attribute__((packed)) {
 } mqttsn_msg_register_t;
 
 /**
+ * CONNACK, WILLTOPICRESP, and WILLMSGRESP messages reply with a message
+ * consisting of length, message type and the return code. 
+ */
+typedef struct __attribute__((packed)) {
+    mqttsn_msg_header_t header;
+    uint8_t return_code;
+} mqttsn_msg_return_code_t;
+
+/**
  *
  */
 typedef struct __attribute__((packed)) {
@@ -196,14 +205,7 @@ typedef struct __attribute__((packed)) {
     char msg[MQTTSN_MAX_PACKET_LENGTH];
 } mqttsn_msg_forward_encapsulation_t;
 
-/**
- * The CONNACK message is sent by the server in response to a
- * connection request from a client. 
- */
-typedef struct __attribute__((packed)) {
-    mqttsn_msg_header_t header;
-    uint8_t return_code; /**< */
-} mqttsn_msg_connack;
+/** TODO: check, probably obsolete */
 
 /**
  * The WILLTOPICREQ message is sent by the gateway to request a
@@ -220,10 +222,17 @@ typedef struct __attribute__((packed)) {
  * the gateway.
  */
 typedef struct __attribute__((packed)) {
-    uint8_t length;      /**< */
-    uint8_t msg_type;    /**< */
+    mqttsn_msg_header_t header;
     uint8_t flags;       /**< */
 } mqttsn_msg_willtopic_t;
+
+
+
+typedef struct __attribute__((packed)) {
+    uint8_t state;  /**< indicates if the client is connected */
+    uint8_t gw_id;  /**< gateway id a client wants connect to or is connected */
+    uint8_t msg_id; /**< type of message a client is waiting for */
+} mqttsn_state_t;
 
 
 void mqttsn_init(ipv6_addr_t src, uint16_t src_port, ipv6_addr_t dest, uint16_t dest_port, bool enable_forward_encapsulation);
@@ -237,7 +246,7 @@ void mqttsn_init(ipv6_addr_t src, uint16_t src_port, ipv6_addr_t dest, uint16_t 
  * @param[in] clean_session Flag indicating if this is going to be a clean
  * session (as in MQTT)
  */
-void mqttsn_connect(const char* client_identifier, size_t client_identifier_length, uint16_t duration, bool clean_session);
+void mqttsn_connect(const char* client_identifier, size_t client_identifier_length, bool will, uint16_t duration, bool clean_session);
 
 /**
  * Sends a DISCONNECT message in order to indicate that the client wants to
@@ -307,6 +316,23 @@ void mqttsn_subscribe_topic_name(const char* topic_name, size_t topic_length,  i
 void mqttsn_publish(uint16_t topic_identifier, uint8_t topic_type, const void* data, size_t payload_size, int8_t qos, uint8_t retain);
 
 /**
+ * Sends a WILLTOPIC message to the gateway. The WILL topic has to be defined
+ * beforehand.
+ */
+void mqttsn_will_topic(void);
+
+/**
+ * Sends a WILLTOPIC with no flags and WILL to the gateway. A gateway will delete upon
+ * reception of the message the WILL topic and message of the client.
+ */
+void mqttsn_will_topic_delete(void);
+
+/**
+ * Sends a WILL message containing the WILL message to the gateway.
+ */
+void mqttsn_will(void);
+
+/**
  * Checks if a given node id is valid.
  *
  * @param[in] wireless_node_id The node id to check
@@ -365,6 +391,10 @@ void mqttsn_handle_searchgw_msg(ipv6_addr_t* source);
 
 void mqttsn_handle_register_msg(const mqttsn_msg_register_t *packet);
 
+
+void mqttsn_handle_will_topic_request_msg(void);
+
+
 void mqttsn_handle_msg(char *data, ipv6_addr_t *source);
 
 uint8_t mqttsn_get_radius(void);
@@ -372,6 +402,12 @@ uint8_t mqttsn_get_radius(void);
 uint8_t mqttsn_get_type(void *data);
 
 void mqttsn_set_mqttsn_send(void (*function)(void*));
+
+/** TODO */
+void mqttsn_handle_willmsgresp(const mqttsn_msg_return_code_t *packet);
+void mqttsn_handle_connack_msg(const mqttsn_msg_return_code_t *packet);
+void mqttsn_handle_willtopicresp(const mqttsn_msg_return_code_t *packet);
+void mqttsn_parse_return_code(uint8_t return_code);
 
 #ifdef __cpluslus
 }
