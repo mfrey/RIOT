@@ -60,4 +60,4 @@ bool mqttsn_communication_is_forwarder_encapsulation_enabled(void);
 }
 #endif
 
-#endif 
+#endif /* MQTTSN_COMMUNICATION_H_ */

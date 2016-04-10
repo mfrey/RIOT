@@ -104,6 +104,8 @@ mqttsn_gateway_entry_t* mqttsn_gateway_get_most_recent_entry(void);
 
 uint8_t mqttsn_gateway_compare(mqttsn_gateway_entry_t *first, mqttsn_gateway_entry_t *second);
 
+mqttsn_gateway_entry_t* mqttsn_gateway_get_entry(uint8_t index);
+
 #ifdef __cpluslus
 }
 #endif 

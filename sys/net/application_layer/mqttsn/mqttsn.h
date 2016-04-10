@@ -197,6 +197,13 @@ typedef struct __attribute__((packed)) {
 
 typedef struct __attribute__((packed)) {
     mqttsn_msg_header_t header;
+    uint16_t topic_id;
+    uint16_t msg_id;
+    uint8_t return_code;
+} mqttsn_msg_publish_acknowledgement_t;
+
+typedef struct __attribute__((packed)) {
+    mqttsn_msg_header_t header;
     /** control information exchanged between forwarder/gateway */
     uint8_t ctrl;           
     /** the wireless node identifier of this device */
@@ -322,6 +329,12 @@ void mqttsn_publish(uint16_t topic_identifier, uint8_t topic_type, const void* d
 void mqttsn_will_topic(void);
 
 /**
+ * Requests the gateway to update the previously stored WILL update by sending
+ * a WILLMSGUPD message.
+ */
+void mqttsn_will_update(void);
+
+/**
  * Sends a WILLTOPIC with no flags and WILL to the gateway. A gateway will delete upon
  * reception of the message the WILL topic and message of the client.
  */
@@ -329,8 +342,10 @@ void mqttsn_will_topic_delete(void);
 
 /**
  * Sends a WILL message containing the WILL message to the gateway.
+ *
+ * @param[in] flag Indicating if this is an update of the will message.
  */
-void mqttsn_will(void);
+void mqttsn_will(bool flag);
 
 /**
  * Checks if a given node id is valid.
@@ -391,7 +406,6 @@ void mqttsn_handle_searchgw_msg(ipv6_addr_t* source);
 
 void mqttsn_handle_register_msg(const mqttsn_msg_register_t *packet);
 
-
 void mqttsn_handle_will_topic_request_msg(void);
 
 
@@ -402,6 +416,8 @@ uint8_t mqttsn_get_radius(void);
 uint8_t mqttsn_get_type(void *data);
 
 void mqttsn_set_mqttsn_send(void (*function)(void*));
+
+void mqttsn_handle_publish_msg(mqttsn_msg_publish_t *packet);
 
 /** TODO */
 void mqttsn_handle_willmsgresp(const mqttsn_msg_return_code_t *packet);
@@ -414,6 +430,15 @@ void mqttsn_parse_return_code(uint8_t return_code);
  * (PINGREQ) message.
  */
 void mqttsn_ping_response(void);
+
+/**
+ * Handles the reception of ping responses. This is important if 
+ */
+void mqttsn_handle_ping_response(void);
+
+void mqttsn_handle_publish_acknowledgement_msg(mqttsn_msg_publish_acknowledgement_t *data);
+
+void mqttsn_handle_unsubscribe_acknowledgement_msg(void *packet);
 
 #ifdef __cpluslus
 }

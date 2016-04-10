@@ -51,6 +51,16 @@ bool mqttsn_gateway_add(uint8_t gw_id, ipv6_addr_t *address, uint16_t duration)
 }
 
 
+mqttsn_gateway_entry_t* mqttsn_gateway_get_entry(uint8_t index) 
+{
+    if (index <= current_entry) {
+        return &(gateways[index]);
+    }
+
+    return NULL;
+}
+
+
 mqttsn_gateway_entry_t* mqttsn_gateway_get_most_recent_entry(void) 
 {
     return &(gateways[current_entry]);

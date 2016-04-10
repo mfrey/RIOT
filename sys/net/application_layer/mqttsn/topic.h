@@ -65,6 +65,9 @@ void mqttsn_topic_clear(void);
 
 const char* mqttsn_topic_get(uint16_t topic_identifier);
 
+uint8_t mqttsn_will_topic_size(void);
+uint8_t mqttsn_will_msg_size(void);
+
 #ifdef __cpluslus
 }
 #endif 

@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2016 Michael Frey <mail@mfrey.net>
+ *
+ * This file is subject to the terms and conditions of the GNU Lesser
+ * General Public License v2.1. See the file LICENSE in the top level
+ * directory for more details.
+ */
+
+/**
+ * @ingroup     mqtt-sn
+ * @{
+ *
+ * @file        mqttsn.c
+ * @brief       Marshalling and unmarshalling of MQTT-SN messages
+ *
+ * @author      Michael Frey <mail@mfrey.net>
+ */
+
 #include "mqttsn.h"
 
 #include <stdio.h>
@@ -6,7 +24,8 @@
 
 #include <byteorder.h>
 
-
+#include "data.h"
+#include "will.h"
 #include "topic.h"
 #include "debug.h"
 #include "gateway.h"
@@ -21,8 +40,6 @@ static uint16_t message_id = 1;
 /** defines the radius for SEARCHGW and GWINFO messages */
 static uint8_t radius = MQTTSN_DEFAULT_RADIUS;
 
-static char will_msg[MQTTSN_DEFAULT_WILL_MESSAGE_SIZE];
-static char will_topic[MQTTSN_DEFAULT_WILL_TOPIC_SIZE];
 /**
  * Sends MQTT-SN messages.
  *
@@ -339,6 +356,7 @@ void mqttsn_publish(uint16_t topic_identifier, uint8_t topic_type, const void* d
 
     publish_packet->flags = 0x00;
     publish_packet->flags +=  mqttsn_get_qos_flag(qos);
+
     if (retain) {
         publish_packet->flags += MQTTSN_FLAG_RETAIN;
     }
@@ -553,7 +571,7 @@ uint8_t mqttsn_get_type(void *data)
 void mqttsn_will_topic(void) 
 {
     /** actual length of the packet */
-    size_t size = 0x06 + MQTTSN_DEFAULT_WILL_TOPIC_SIZE;
+    size_t size = 0x06 + mqttsn_will_topic_size();
 
     /** raw packet */ 
     char data[size];
@@ -566,9 +584,10 @@ void mqttsn_will_topic(void)
     // TODO
     will_packet->flags = 0;
 
-    /** set the will  */
-    memcpy((will_packet+1), will_topic, MQTTSN_DEFAULT_WILL_TOPIC_SIZE);
+    char* will_topic = mqttsn_will_get_topic(); 
 
+    /** set the will  */
+    memcpy((will_packet+1), will_topic, (size - 0x06));
     // TODO
 
     mqttsn_send(will_packet);
@@ -616,7 +635,7 @@ void mqttsn_handle_msg(char *data, ipv6_addr_t *source)
              * A MQTT-SN client responses upon reception of a WILLMSGREQ
              * message by sending a WILLMSG.
              */
-            mqttsn_will();
+            mqttsn_will(false);
             break;
         case MQTTSN_TYPE_WILLMSG:    
         case MQTTSN_TYPE_REGISTER:  
@@ -624,7 +643,10 @@ void mqttsn_handle_msg(char *data, ipv6_addr_t *source)
             mqttsn_handle_register_acknowledgement_msg((mqttsn_msg_register_acknowledgement_t*)data); 
             break;
         case MQTTSN_TYPE_PUBLISH:    
+            mqttsn_handle_publish_msg((mqttsn_msg_publish_t*)data);
+            break;
         case MQTTSN_TYPE_PUBACK:   
+            mqttsn_handle_publish_acknowledgement_msg((mqttsn_msg_publish_acknowledgement_t*)data);
         case MQTTSN_TYPE_PUBCOMP:  
         case MQTTSN_TYPE_PUBREC:    
         case MQTTSN_TYPE_PUBREL:     
@@ -632,10 +654,12 @@ void mqttsn_handle_msg(char *data, ipv6_addr_t *source)
         case MQTTSN_TYPE_SUBACK:         
         case MQTTSN_TYPE_UNSUBSCRIBE:  
         case MQTTSN_TYPE_UNSUBACK:
+            mqttsn_handle_unsubscribe_acknowledgement_msg(data);
         case MQTTSN_TYPE_PINGREQ:   
             mqttsn_ping_response();
             break;
         case MQTTSN_TYPE_PINGRESP:        
+            mqttsn_handle_ping_response();
         case MQTTSN_TYPE_DISCONNECT:      
         case MQTTSN_TYPE_WILLTOPICUPD:    
         case MQTTSN_TYPE_WILLTOPICRESP:  
@@ -689,24 +713,85 @@ void mqttsn_will_topic_delete(void)
     mqttsn_send(&will_topic_delete_packet);
 }
 
-void mqttsn_will(void)
+void mqttsn_will_update(void) 
+{
+    /**
+     * The WILLMSGUPD differs from the WILLMSG just in the
+     * flag. The new Will has to be stored before calling
+     * this function.
+     */
+    mqttsn_will(true);
+}
+
+void mqttsn_will(bool flag)
 {
     /** size of the packet */
-    size_t size = 0x02 + MQTTSN_DEFAULT_WILL_MESSAGE_SIZE;
+    size_t size = 0x02 + mqttsn_will_msg_size();
     char data[size];
 
     /** WILL messages consist only of a mqttsn_header and the WILL message */
     mqttsn_msg_header_t *will_packet = (mqttsn_msg_header_t*)data;
 
     will_packet->length = size;
-    will_packet->msg_type = MQTTSN_TYPE_WILLMSG;
 
-    memcpy(will_packet+1, will_msg, MQTTSN_DEFAULT_WILL_MESSAGE_SIZE);
+    if (!flag) {
+        will_packet->msg_type = MQTTSN_TYPE_WILLMSG;
+    } else {
+        will_packet->msg_type = MQTTSN_TYPE_WILLMSGUPD;
+    }
+
+    char* will_msg = mqttsn_will_get_message(); 
+    memcpy(will_packet+1, will_msg, (size - 0x02));
 
     mqttsn_send(will_packet);
+}
+
+void mqttsn_handle_ping_response(void) 
+{
+    /** 
+     * if the sender of the ping response is the gateway
+     * the client is currently connected to, a ping response
+     * indicates that the gateway has no messages for a 
+     * sleeping client
+     */
+
+    // TODO
+}
+
+void mqttsn_handle_publish_msg(mqttsn_msg_publish_t *packet)
+{
+    /** the size of the actual published message */
+    size_t payload_size = packet->header.length - sizeof(mqttsn_msg_publish_t);
+
+    // TODO
+
+    /** store the message */
+    char data[payload_size];
+    /** copy over the received data */
+    memcpy(data, packet+1, payload_size);
+    /** data module handles the parsing of the received message */
+    mqttsn_data_receive(data, payload_size);
 }
 
 void mqttsn_set_mqttsn_send(void (*function)(void*))
 {
     mqttsn_send = function;
+}
+
+void mqttsn_handle_publish_acknowledgement_msg(mqttsn_msg_publish_acknowledgement_t *data) 
+{
+    //TODO
+    mqttsn_parse_return_code(data->return_code);
+}
+
+void mqttsn_handle_unsubscribe_acknowledgement_msg(void *packet)
+{
+    // TODO: seems to be wrong
+    uint16_t msg_id = ((uint16_t*)packet)[1];
+
+    // TODO: message handling
+#if ENABLE_DEBUG 
+    printf("recveid unsubscribe acknowledgement of message id %d \n", msg_id);
+#endif
+    
 }
