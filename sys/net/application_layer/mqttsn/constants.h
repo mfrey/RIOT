@@ -23,6 +23,13 @@
 #include "kernel_types.h"
 
 /**
+ * The protocol version of MQTT-SN.
+ */
+#ifndef MQTTSN_PROTOCOL_VERSION
+#define MQTTSN_PROTOCOL_VERSION (0x01)
+#endif
+
+/**
  * The maxmimum packet length of a MQTT-SN message in bytes.
  */
 #ifndef MQTTSN_MAX_PACKET_LENGTH

@@ -79,10 +79,10 @@ typedef enum {
     MQTTSN_FLAG_WILL          = 0x1 << 3,
     MQTTSN_FLAG_CLEAN_SESSION = 0x1 << 2,
     MQTTSN_FLAG_DUP           = 0x1 << 7,
-    MQTTSN_FLAG_QOS_0         = 0x0 << 5,
-    MQTTSN_FLAG_QOS_1         = 0x1 << 5,
-    MQTTSN_FLAG_QOS_2         = 0x2 << 5,
-    MQTTSN_FLAG_QOS_N1        = 0x3 << 5
+    MQTTSN_FLAG_QOS_0         = 0x0 << 5, /**< at most once (fire and forget) */
+    MQTTSN_FLAG_QOS_1         = 0x1 << 5, /**< at least once (acknowledged delivery) */
+    MQTTSN_FLAG_QOS_2         = 0x2 << 5, /**< exactly one (assured delivery) */
+    MQTTSN_FLAG_QOS_N1        = 0x3 << 5  /**< reserved */
 } mqttsn_flag_t;
 
 /**
@@ -98,7 +98,7 @@ typedef enum {
 
 /**
  * The MQTT-SN message header which is two or up to four octet large 
- * and consists of a length and message type field. The length
+ * and consists of a length and a message type field. The length
  * field is variable in size (1 to 3). This header only defines
  * a length field of one octet. Hence, larger message headers
  * have to specified seperatly.

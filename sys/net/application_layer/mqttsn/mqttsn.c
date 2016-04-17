@@ -137,23 +137,23 @@ void mqttsn_connect(const char* client_identifier, size_t client_identifier_leng
     char data[length];
     /** wrap raw packet around connect packet structure */
     mqttsn_msg_connect_t* connect_packet = (mqttsn_msg_connect_t*)data;
-    memset(&connect_packet, 0, sizeof(connect_packet));
+    memset(connect_packet, 0, length);
 
     /** set the parameters of the packet */
-    connect_packet->header.length = 0x06 + client_identifier_length;
+    connect_packet->header.length = length;
     connect_packet->header.msg_type = MQTTSN_TYPE_CONNECT;
     connect_packet->flags = 0;
 
     // TODO: htons?
     if (will) { 
-        connect_packet->flags = MQTTSN_FLAG_WILL;
+        connect_packet->flags += MQTTSN_FLAG_WILL;
     }
 
     if (clean_session) {
         connect_packet->flags += MQTTSN_FLAG_CLEAN_SESSION;
     }
 
-    connect_packet->protocol_identifier = 0x01;
+    connect_packet->protocol_identifier = MQTTSN_PROTOCOL_VERSION;
     connect_packet->duration = HTONS(duration);
 
     size_t size = strnlen(client_identifier, 23); 
