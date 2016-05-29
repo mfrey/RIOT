@@ -95,15 +95,22 @@ static void test_mqttsn_connect(void)
  */
 static void test_mqttsn_connect_procedure(void) 
 {
-    uint8_t duration = 23;
-    // TODO: replace with client_identifier function 
-    const char *client_identifier = "RIOT";
-    /** length of the client identifier */
-    size_t length = strlen(client_identifier);
+    /** 
+     * don't "send" a connect message, since it is handled by the gateway,
+     * but mimic the reception of a WILLTOPICREQ
+     */
+    packet[1] = MQTTSN_TYPE_WILLTOPICREQ;
+    /** simulate reception of a WILLTOPICREQ */
+    mqttsn_handle_msg(packet, NULL);
+    /** client answers by means of WILLTOPIC */
+    TEST_ASSERT_EQUAL_INT(packet[1], MQTTSN_TYPE_WILLTOPIC);
 
-    mqttsn_connect(client_identifier, length, false, duration, true);
-    // TODO
-
+    /** gateway sends a WILLMSGREQ */
+    packet[1] = MQTTSN_TYPE_WILLMSGREQ;
+    /** simulate reception of a WILLMSGREQ */
+    mqttsn_handle_msg(packet, NULL);
+    /** client answers by means of WILLTOPIC */
+    TEST_ASSERT_EQUAL_INT(packet[1], MQTTSN_TYPE_WILLMSG);
 }
 
 static void test_mqttsn_ping_request(void) 
