@@ -26,21 +26,15 @@
 extern "C" {
 #endif
 
+/**
+ * Initializes variables responsible for handling WILL topics and messages.
+ *
+ * @param[in] will_topic The WILL topic to set
+ * @param[in] topic_length The length of the WILL topic
+ * @param[in] will_msg The WILL message to set
+ * @param[in] message_length The length of the WILL message
+ */
 void mqttsn_will_init(char *will_topic, size_t topic_length, char *will_msg, size_t message_length);
-
-/**
- * Sets the WILL message of the client.
- *
- * @return On success 0, or -1 if the message could not be set
- */
-uint8_t mqttsn_will_set_message(char *message, size_t length);
-
-/**
- * Sets the WILL topic of the client.
- *
- * @return On success 0, or -1 if the of could not be set
- */
-uint8_t mqttsn_will_set_topic(char *topic, size_t length);
 
 /**
  * Returns the WILL message set by the client.
@@ -56,6 +50,31 @@ char* mqttsn_will_get_message(void);
  */
 char* mqttsn_will_get_topic(void);
 
+/**
+ * Updates or sets a new WILL topic.
+ *
+ * @param[in] topic The topic to be set or updated.
+ * @param[in] topic_length The length of the new or updated topic.
+ *
+ * @return 0 upon success, -1 otherwise
+ */
+int8_t mqttsn_will_set_topic(char *topic, size_t length);
+
+/**
+ * Updates or sets a new WILL message.
+ *
+ * @param[in] topic The message to be set or updated.
+ * @param[in] topic_length The length of the new or updated message.
+ *
+ * @return 0 upon success, -1 otherwise
+ */
+int8_t mqttsn_will_set_message(char *message, size_t length);
+
+uint8_t mqttsn_will_msg_size(void);
+
+uint8_t mqttsn_will_topic_size(void);
+
+void mqttsn_will_clear(void);
 
 #ifdef __cplusplus
 }

@@ -26,6 +26,10 @@
 static char will_msg[MQTTSN_DEFAULT_WILL_MESSAGE_SIZE];
 /** The WILL topic set by the client. */
 static char will_topic[MQTTSN_DEFAULT_WILL_TOPIC_SIZE];
+/** The actual size of the WILL topic */
+static size_t will_topic_size = MQTTSN_DEFAULT_WILL_TOPIC_SIZE;
+/** The actual size of the WILL message */
+static size_t will_msg_size = MQTTSN_DEFAULT_WILL_MESSAGE_SIZE;
 
 /**
  * The function copies the content of a source array with a given size 
@@ -40,20 +44,29 @@ static char will_topic[MQTTSN_DEFAULT_WILL_TOPIC_SIZE];
  * @return 0 if the operation was successful, -1 if the source array was larger
  * than the destination array.
  */
-static uint8_t mqttsn_will_set_char_array(char *source, size_t source_length, char *destination, size_t destination_length);
+static int8_t mqttsn_will_set_char_array(char *source, size_t source_length, char *destination, size_t destination_length);
+
 
 void mqttsn_will_init(char *topic, size_t topic_length, char *message, size_t message_length) 
 {
     if (topic) {
-        mqttsn_will_set_char_array(topic, topic_length, will_topic, MQTTSN_DEFAULT_WILL_TOPIC_SIZE);
+        mqttsn_will_set_topic(topic, topic_length);
     }
 
     if (message) {
-        mqttsn_will_set_char_array(message, message_length, will_msg, MQTTSN_DEFAULT_WILL_MESSAGE_SIZE);
+        mqttsn_will_set_message(message, message_length);
     }
 }
 
-static uint8_t mqttsn_will_set_char_array(char *source, size_t source_length, char *destination, size_t destination_length) 
+void mqttsn_will_clear(void)
+{
+    memset(will_topic, 0, sizeof(char) * MQTTSN_DEFAULT_WILL_TOPIC_SIZE);
+    will_topic_size = MQTTSN_DEFAULT_WILL_TOPIC_SIZE;
+    memset(will_msg, 0, sizeof(char) * MQTTSN_DEFAULT_WILL_MESSAGE_SIZE);
+    will_msg_size = MQTTSN_DEFAULT_WILL_MESSAGE_SIZE;
+}
+
+static int8_t mqttsn_will_set_char_array(char *source, size_t source_length, char *destination, size_t destination_length) 
 {
     if (source_length <= destination_length) {
         strncpy(destination, source, source_length-1);
@@ -68,14 +81,44 @@ static uint8_t mqttsn_will_set_char_array(char *source, size_t source_length, ch
     return -1;
 }
 
+int8_t mqttsn_will_set_topic(char *topic, size_t topic_length)
+{
+    int8_t result = mqttsn_will_set_char_array(topic, topic_length, will_topic, MQTTSN_DEFAULT_WILL_TOPIC_SIZE);
+
+    if (result == -1) {
+#if ENABLE_DEBUG 
+        printf("could not set the topic!\n");
+#endif 
+    } else {
+        will_topic_size = topic_length;
+    }
+
+    return result;
+}
+
+int8_t mqttsn_will_set_message(char *msg, size_t msg_length)
+{
+    int8_t result = mqttsn_will_set_char_array(msg, msg_length, will_topic, MQTTSN_DEFAULT_WILL_TOPIC_SIZE);
+
+    if (result == -1) {
+#if ENABLE_DEBUG 
+        printf("could not set message!\n");
+#endif 
+    } else {
+        will_msg_size = msg_length;
+    }
+
+    return result;
+}
+
 uint8_t mqttsn_will_msg_size(void) 
 {
-    return MQTTSN_DEFAULT_WILL_MESSAGE_SIZE;
+    return will_msg_size;
 }
 
 uint8_t mqttsn_will_topic_size(void) 
 {
-    return MQTTSN_DEFAULT_WILL_TOPIC_SIZE;
+    return will_topic_size;
 }
 
 char* mqttsn_will_get_message(void) 
