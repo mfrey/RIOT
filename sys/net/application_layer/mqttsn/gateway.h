@@ -43,6 +43,8 @@ typedef struct mqttsn_gateway {
     ipv6_addr_t address;        
     /** the gateway interval of gateway */
     uint16_t duration;
+    /** pointers to the next/previous gateway element */
+    struct mqttsn_gateway *next, *prev;
 } mqttsn_gateway_entry_t;
 
 void mqttsn_gateway_init(void);
@@ -50,34 +52,15 @@ void mqttsn_gateway_init(void);
 bool mqttsn_gateway_add(uint8_t gw_id, ipv6_addr_t *address, uint16_t duration);
 
 /**
- * Checks if the given topic id is a valid topic id 
- *
- * @param[in] topic_identifier The topic id to check
- *
- * @return True if the topic id is valid, false otherwise 
- */
-
-/**
- * Checks if the given topic name is a valid topic name
- *
- * @param[in] topic_name The topic name to check
- *
- * @return True if the topic name is valid, false otherwise 
- */
-
-/**
- * Checks if a topic with a given topic identifier is already 
+ * @brief Checks if a gateway with a given address is already 
  * registered.
  *
- * @param[in] topic_id The topic to check
+ * @param[in] address The address of the gateway
  *
- * @return True if there is a topic registered with the given id, false
+ * @return True if there is a gateway registered with the given address, false
  * otherwise.
  */
 bool mqttsn_gateway_contains(ipv6_addr_t *address);
-
-// The correct return value?
-
 
 /**
  * @brief Returns the number of active gateways.
@@ -102,9 +85,19 @@ void mqttsn_gateway_clear(void);
  */
 mqttsn_gateway_entry_t* mqttsn_gateway_get_most_recent_entry(void);
 
-uint8_t mqttsn_gateway_compare(mqttsn_gateway_entry_t *first, mqttsn_gateway_entry_t *second);
+/**
+ * The function checks if the addresses of the two given gateway entries are equal 
+ * or not. This* function is used for utlist's xL_SEARCH function. However, the
+ * function only returns 0 or -1 if addresses match or not.
+ *
+ * @param[in] first The gateway which is compared to the second gateway
+ * @param[out] second The gateway which is compared to the first gateway
+ *
+ * @return 0 if addresses of the gateway entries match, -1 otherwise.
+ */
+int8_t mqttsn_gateway_compare(mqttsn_gateway_entry_t *first, mqttsn_gateway_entry_t *second);
 
-mqttsn_gateway_entry_t* mqttsn_gateway_get_entry(uint8_t index);
+//mqttsn_gateway_entry_t* mqttsn_gateway_get_entry(uint8_t index);
 
 #ifdef __cpluslus
 }
