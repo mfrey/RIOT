@@ -35,6 +35,15 @@ void tests_mqttsn(void);
 void tests_mqttsn_dummy_send(void *data);
 
 /**
+ * @brief   Generates tests for MQTT-SN topics 
+ *
+ * @return  embUnit tests if successful, NULL if not.
+ */
+Test *tests_mqttsn_topic_tests(void);
+
+Test *tests_mqttsn_will_tests(void);
+
+/**
  * @brief   Generates tests for the device functions of MQTT-SN
  *
  * @return  embUnit tests if successful, NULL if not.

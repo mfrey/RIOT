@@ -242,7 +242,7 @@ typedef struct __attribute__((packed)) {
 } mqttsn_state_t;
 
 
-void mqttsn_init(ipv6_addr_t src, uint16_t src_port, ipv6_addr_t dest, uint16_t dest_port, bool enable_forward_encapsulation);
+void mqttsn_init(ipv6_addr_t src, uint16_t src_port, ipv6_addr_t dest, uint16_t dest_port, bool enable_forward_encapsulation, int8_t qos);
 
 /**
  * Sends a CONNECTION message in order to set up a connection.
@@ -410,6 +410,21 @@ void mqttsn_handle_will_topic_request_msg(void);
 
 
 void mqttsn_handle_msg(char *data, ipv6_addr_t *source);
+
+/**
+ * Returns the QoS level of the client.
+ *
+ * @return The QoS level of the client.
+ */
+int8_t mqttsn_get_qos(void);
+
+/**
+ * Sets the QoS level of the client.
+ *
+ * @param[in] qos_level The new QoS level of the client
+ */
+void mqttsn_set_qos(int8_t qos_level);
+
 
 uint8_t mqttsn_get_radius(void);
 

@@ -40,6 +40,9 @@ static uint16_t message_id = 1;
 /** defines the radius for SEARCHGW and GWINFO messages */
 static uint8_t radius = MQTTSN_DEFAULT_RADIUS;
 
+
+static int8_t qos_level = MQTTSN_FLAG_QOS_0;
+
 /**
  * Sends MQTT-SN messages.
  *
@@ -66,12 +69,31 @@ static uint8_t mqttsn_get_qos_flag(int8_t qos)
 {
     switch (qos) {
         case 0:
+            /**
+             * at most once delivery (non-persistent)
+             * - no retry semantics 
+             * - messages arrive either once or not a all
+             */
             return MQTTSN_FLAG_QOS_0;
         case 1:
+            /**
+             * at least once delivery (persistent, allows duplicates)
+             * - sender sends data with message id set in the header
+             * - receiver acknowledges reception
+             * - sender resends message with DUP bit set, if no acknowledgement
+             *   is received
+             */
             return MQTTSN_FLAG_QOS_1;
         case 2:
+            /**
+             * exactly once delivery (persistent)
+             * - two stage process to ensure that messgaes are not duplicated
+             */
             return MQTTSN_FLAG_QOS_2;
-        case -1:
+        case 3:
+            /**
+             * reserved (and not used)
+             */
             return MQTTSN_FLAG_QOS_N1;
         default:
             return 0;
@@ -105,11 +127,13 @@ static void *mqttsn_event_loop(void *args)
     return NULL;
 }
 
-void mqttsn_init(ipv6_addr_t src, uint16_t src_port, ipv6_addr_t dest, uint16_t dest_port, bool enable_forward_encapsulation) 
+void mqttsn_init(ipv6_addr_t src, uint16_t src_port, ipv6_addr_t dest, uint16_t dest_port, bool enable_forward_encapsulation, int8_t qos) 
 {
     mqttsn_communication_init(src, src_port, dest, dest_port, enable_forward_encapsulation);
     mqttsn_send = mqttsn_communication_send_udp;
     mqttsn_receive = mqttsn_communication_receive_udp;
+    /** set the qos level */
+    mqttsn_set_qos(qos);
 
     /* initialize the mqtt-sn thread */
     if (mqttsn_pid == KERNEL_PID_UNDEF) {
@@ -271,7 +295,7 @@ void mqttsn_register_acknowledgement(uint16_t topic_id, uint16_t msg_id)
     mqttsn_send(&register_acknowledgement_packet);
 }
 
-void mqttsn_subscribe_topic_id(uint16_t topic_identifier, int8_t qos) 
+void mqttsn_subscribe_topic_id(uint16_t topic_identifier, int8_t qos)
 {
     /** actual length of the packet */
     size_t length = 0x06 + sizeof(topic_identifier);
@@ -282,7 +306,7 @@ void mqttsn_subscribe_topic_id(uint16_t topic_identifier, int8_t qos)
 
     subscribe_topic_packet->header.msg_type = MQTTSN_TYPE_SUBSCRIBE;
     subscribe_topic_packet->flags = 0x00;
-    subscribe_topic_packet->flags += mqttsn_get_qos_flag(qos);
+    subscribe_topic_packet->flags += qos;
     subscribe_topic_packet->flags += MQTTSN_TOPIC_TYPE_PRE_DEFINED;
     subscribe_topic_packet->msg_id = HTONS(message_id++);
     subscribe_topic_packet->header.length = 0x05 + 2;
@@ -295,7 +319,7 @@ void mqttsn_subscribe_topic_id(uint16_t topic_identifier, int8_t qos)
     mqttsn_send(subscribe_topic_packet);
 }
 
-void mqttsn_subscribe_topic_name(const char* topic_name, size_t topic_length, int8_t qos) 
+void mqttsn_subscribe_topic_name(const char* topic_name, size_t topic_length,  int8_t qos)
 {
     size_t size = strnlen(topic_name, MQTTSN_MAX_TOPIC_LENGTH);
 
@@ -318,7 +342,7 @@ void mqttsn_subscribe_topic_name(const char* topic_name, size_t topic_length, in
     subscribe_topic_packet->header.length = 0x05 + size;
 
     subscribe_topic_packet->flags = 0x00;
-    subscribe_topic_packet->flags += mqttsn_get_qos_flag(qos);
+    subscribe_topic_packet->flags += qos;
     if (size == 2) {
         subscribe_topic_packet->flags += MQTTSN_TOPIC_TYPE_SHORT;
     } else {
@@ -331,7 +355,7 @@ void mqttsn_subscribe_topic_name(const char* topic_name, size_t topic_length, in
     mqttsn_send(subscribe_topic_packet);
 }
 
-void mqttsn_publish(uint16_t topic_identifier, uint8_t topic_type, const void* data, size_t payload_size, int8_t qos, uint8_t retain) 
+void mqttsn_publish(uint16_t topic_identifier, uint8_t topic_type, const void* data, size_t payload_size, int8_t qos, uint8_t retain)
 {
     if (!data || (payload_size > (MQTTSN_MAX_PACKET_LENGTH-7))) {
 #if ENABLE_DEBUG 
@@ -355,7 +379,7 @@ void mqttsn_publish(uint16_t topic_identifier, uint8_t topic_type, const void* d
     publish_packet->header.msg_type = MQTTSN_TYPE_PUBLISH;
 
     publish_packet->flags = 0x00;
-    publish_packet->flags +=  mqttsn_get_qos_flag(qos);
+    publish_packet->flags += qos;
 
     if (retain) {
         publish_packet->flags += MQTTSN_FLAG_RETAIN;
@@ -790,8 +814,28 @@ void mqttsn_handle_unsubscribe_acknowledgement_msg(void *packet)
     uint16_t msg_id = ((uint16_t*)packet)[1];
 
     // TODO: message handling
-#if ENABLE_DEBUG 
+//#if ENABLE_DEBUG 
     printf("recveid unsubscribe acknowledgement of message id %d \n", msg_id);
+//#endif
+}
+
+int8_t mqttsn_get_qos(void) 
+{
+    return qos_level;
+}
+
+void mqttsn_set_qos(int8_t qos) 
+{
+    int8_t result = mqttsn_get_qos_flag(qos);
+
+    /** unknown qos level */
+    if ((result == 0) || (result == MQTTSN_FLAG_QOS_N1)) {
+#if ENABLE_DEBUG 
+        printf("could not set new qos level. reason: unsupported qos level: %d \n", qos);
 #endif
-    
+        return;
+    }
+
+    /** update the qos level */
+    qos_level = result;
 }
