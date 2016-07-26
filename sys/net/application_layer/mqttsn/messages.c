@@ -10,13 +10,13 @@
  * @ingroup     mqtt-sn
  * @{
  *
- * @file        mqttsn.c
+ * @file        messages.c
  * @brief       Handling of MQTT-SN messages
  *
  * @author      Michael Frey <mail@mfrey.net>
  */
 
-#include "mqttsn.h"
+#include "messages.h"
 
 #include <stdio.h>
 #include <string.h>

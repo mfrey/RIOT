@@ -18,7 +18,7 @@
 
 #include "debug.h" 
 
-#include "mqttsn.h"
+#include "messages.h"
 
 const char* mqttsn_debug_return_code_to_string(uint8_t return_code)
 {

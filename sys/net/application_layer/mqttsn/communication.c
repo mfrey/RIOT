@@ -17,7 +17,7 @@
  */
 
 #include "communication.h" 
-#include "mqttsn.h"
+#include "messages.h"
 #include "constants.h"
 #include "device.h"
 

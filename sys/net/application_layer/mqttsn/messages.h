@@ -10,7 +10,7 @@
  * @ingroup     mqtt-sn
  * @{
  *
- * @file        mqttsn.h
+ * @file        messages.h
  * @brief       Structs, enums, and functions for handling MQTT-SN messages
  *
  * @author      Michael Frey <mail@mfrey.net>
