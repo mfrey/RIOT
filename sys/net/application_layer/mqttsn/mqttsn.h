@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Michael Frey <mail@mfrey.net>
+ * Copyright (C) 2016 Michael Frey
  *
  * This file is subject to the terms and conditions of the GNU Lesser
  * General Public License v2.1. See the file LICENSE in the top level
@@ -11,7 +11,7 @@
  * @{
  *
  * @file        mqttsn.h
- * @brief       Structs, enums, and functions for marshalling/unmarshalling MQTT-SN messages
+ * @brief       Structs, enums, and functions for handling MQTT-SN messages
  *
  * @author      Michael Frey <mail@mfrey.net>
  */
@@ -242,10 +242,8 @@ typedef struct __attribute__((packed)) {
 } mqttsn_state_t;
 
 
-void mqttsn_init(ipv6_addr_t src, uint16_t src_port, ipv6_addr_t dest, uint16_t dest_port, bool enable_forward_encapsulation, int8_t qos);
-
 /**
- * Sends a CONNECTION message in order to set up a connection.
+ * @brief Sends a CONNECTION message in order to set up a connection.
  *
  * @param[in] client_identifier The identifier of this client.
  * @param[in] client_identifier_length The length of the client identifier
@@ -256,24 +254,24 @@ void mqttsn_init(ipv6_addr_t src, uint16_t src_port, ipv6_addr_t dest, uint16_t 
 void mqttsn_connect(const char* client_identifier, size_t client_identifier_length, bool will, uint16_t duration, bool clean_session);
 
 /**
- * Sends a DISCONNECT message in order to indicate that the client wants to
+ * @brief Sends a DISCONNECT message in order to indicate that the client wants to
  * disconnect.
  */    
 void mqttsn_disconnect(void);
 
 /**
- * Sends a PINGREQ message in order to show if a gateway or client is still
+ * @brief Sends a PINGREQ message in order to show if a gateway or client is still
  * alive.
  */    
 void mqttsn_ping_request(void);
 
 /**
- * Sends a SEARCHGW message in order to find a gateway.
+ * @brief Sends a SEARCHGW message in order to find a gateway.
  */    
 void mqttsn_search_gateway(void);
 
 /**
- * Requests a topic id value for the given topic name (REGISTER message).
+ * @brief Requests a topic id value for the given topic name (REGISTER message).
  *
  * @param[in] topic_name The name of the topic
  * @param[in] topic_length The length of the topic
@@ -283,7 +281,7 @@ void mqttsn_search_gateway(void);
 void mqttsn_register(const char *topic_name, size_t topic_length, uint16_t topic_id);
 
 /**
- * Sends a REGACK message as an acknowledgment to the receipt and processing of
+ * @brief Sends a REGACK message as an acknowledgment to the receipt and processing of
  * a REGISTER message. 
  *
  * @param[in] topic_id The value which is used as topic id in the PUBLISH
@@ -293,7 +291,7 @@ void mqttsn_register(const char *topic_name, size_t topic_length, uint16_t topic
 void mqttsn_register_acknowledgement(uint16_t topic_id, uint16_t msg_id);
 
 /**
- * Subscribes to a given topic id (SUBSCRIBE message).
+ * @brief Subscribes to a given topic id (SUBSCRIBE message).
  *
  * @param[in] topic_identifier The topic identifier
  * @param[in] qos The QoS level of this topic
@@ -301,7 +299,7 @@ void mqttsn_register_acknowledgement(uint16_t topic_id, uint16_t msg_id);
 void mqttsn_subscribe_topic_id(uint16_t topic_identifier, int8_t qos);
 
 /**
- * Subscribes to a given topic name (SUBSCRIBE message).
+ * @brief Subscribes to a given topic name (SUBSCRIBE message).
  *
  * @param[in] topic_name The topic name a clients wants to subscribe to
  * @param[in] topic_length The size of the the topic name
@@ -310,7 +308,7 @@ void mqttsn_subscribe_topic_id(uint16_t topic_identifier, int8_t qos);
 void mqttsn_subscribe_topic_name(const char* topic_name, size_t topic_length,  int8_t qos);
 
 /**
- * Publishes data for a given topic (PUBLISH message).
+ * @brief Publishes data for a given topic (PUBLISH message).
  *
  * @param[in] topic_identifier The topic identifier for which the data is
  * published.
@@ -323,25 +321,28 @@ void mqttsn_subscribe_topic_name(const char* topic_name, size_t topic_length,  i
 void mqttsn_publish(uint16_t topic_identifier, uint8_t topic_type, const void* data, size_t payload_size, int8_t qos, uint8_t retain);
 
 /**
- * Sends a WILLTOPIC message to the gateway. The WILL topic has to be defined
- * beforehand.
+ * @brief Sends a WILLTOPIC message to the gateway. 
+ *
+ * The WILL topic has to be defined beforehand.
  */
 void mqttsn_will_topic(void);
 
 /**
- * Requests the gateway to update the previously stored WILL update by sending
+ * @brief Requests the gateway to update the previously stored WILL update by sending
  * a WILLMSGUPD message.
  */
 void mqttsn_will_update(void);
 
 /**
- * Sends a WILLTOPIC with no flags and WILL to the gateway. A gateway will delete upon
- * reception of the message the WILL topic and message of the client.
+ * @brief Sends a WILLTOPIC with no flags and WILL to the gateway. 
+ *
+ * A gateway will delete upon reception of the message the WILL topic and message 
+ * of the client.
  */
 void mqttsn_will_topic_delete(void);
 
 /**
- * Sends a WILL message containing the WILL message to the gateway.
+ * @brief Sends a WILL message containing the WILL message to the gateway.
  *
  * @param[in] flag Indicating if this is an update of the will message.
  */
@@ -360,7 +361,7 @@ void mqttsn_will(bool flag);
 uint8_t mqttsn_check_wireless_node_id(uint8_t *wireless_node_id, uint8_t wireless_node_length);
 
 /**
- * Handles the reception of a REGACK message.
+ * @brief Handles the reception of a REGACK message.
  *
  * @param[in] packet The REGACK message received by the client.
  *
@@ -369,7 +370,7 @@ uint8_t mqttsn_check_wireless_node_id(uint8_t *wireless_node_id, uint8_t wireles
 uint16_t mqttsn_handle_register_acknowledgement_msg(const mqttsn_msg_register_acknowledgement_t *packet);
 
 /**
- * Performs various checks to verify that the packet is a well-formed MQTT-SN
+ * @brief Performs various checks to verify that the packet is a well-formed MQTT-SN
  * message.
  *
  * @param[in] data The data received from the network stack
@@ -383,9 +384,9 @@ uint16_t mqttsn_handle_register_acknowledgement_msg(const mqttsn_msg_register_ac
 uint8_t mqttsn_validate(const void *data, size_t length);
 
 /**
- * Handles ADVERTISE messages. The function simply adds gateways to its internal
- * gateway list. The actions specified in section 6.1 of the MQTT-SN
- * specification happen in the advertise.c file.
+ * @brief Handles ADVERTISE messages. 
+ *
+ * The function simply adds gateways to its internal gateway list. 
  *
  * TODO: address parameter
  *
@@ -395,8 +396,9 @@ uint8_t mqttsn_validate(const void *data, size_t length);
 void mqttsn_handle_advertise_msg(const mqttsn_msg_advertise_t *packet, ipv6_addr_t *address);
 
 /**
- * Sets the broadcast radius for SEARCHGW and GWINFO messages. In dense deployments, the
- * radius should be set to 1.
+ * @brief Sets the broadcast radius for SEARCHGW and GWINFO messages. 
+ *
+ * In dense deployments, the radius should be set to 1.
  *
  * @param[in] msg_radius The broadcast radius to set.
  */
@@ -408,18 +410,27 @@ void mqttsn_handle_register_msg(const mqttsn_msg_register_t *packet);
 
 void mqttsn_handle_will_topic_request_msg(void);
 
-
+/**
+ * @brief Handles MQTT-SN messages.
+ *
+ * The function determines the type of the message and delegates the 
+ * handling of the message to the corresponding (dedicated) function.
+ *
+ * @param[in] data The actual received message.
+ * @param[in] source The source address of received data.
+ *
+ */
 void mqttsn_handle_msg(char *data, ipv6_addr_t *source);
 
 /**
- * Returns the QoS level of the client.
+ * @brief Returns the QoS level of the client.
  *
  * @return The QoS level of the client.
  */
 int8_t mqttsn_get_qos(void);
 
 /**
- * Sets the QoS level of the client.
+ * @brief Sets the QoS level of the client.
  *
  * @param[in] qos_level The new QoS level of the client
  */
@@ -441,13 +452,13 @@ void mqttsn_handle_willtopicresp(const mqttsn_msg_return_code_t *packet);
 void mqttsn_parse_return_code(uint8_t return_code);
 
 /**
- * Sends a ping response (PINGRESP) messages  in reply to a ping request
+ * @brief Sends a ping response (PINGRESP) messages in reply to a ping request
  * (PINGREQ) message.
  */
 void mqttsn_ping_response(void);
 
 /**
- * Handles the reception of ping responses. This is important if 
+ * @brief Handles the reception of ping responses. 
  */
 void mqttsn_handle_ping_response(void);
 

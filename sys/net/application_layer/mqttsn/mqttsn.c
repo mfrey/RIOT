@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Michael Frey <mail@mfrey.net>
+ * Copyright (C) 2016 Michael Frey
  *
  * This file is subject to the terms and conditions of the GNU Lesser
  * General Public License v2.1. See the file LICENSE in the top level
@@ -11,7 +11,7 @@
  * @{
  *
  * @file        mqttsn.c
- * @brief       Marshalling and unmarshalling of MQTT-SN messages
+ * @brief       Handling of MQTT-SN messages
  *
  * @author      Michael Frey <mail@mfrey.net>
  */
@@ -23,6 +23,8 @@
 #include <malloc.h>
 
 #include <byteorder.h>
+
+#include "net/mqttsn.h"
 
 #include "data.h"
 #include "will.h"
@@ -39,8 +41,7 @@ static char _mqttsn_stack[MQTTSN_STACK_SIZE];
 static uint16_t message_id = 1;
 /** defines the radius for SEARCHGW and GWINFO messages */
 static uint8_t radius = MQTTSN_DEFAULT_RADIUS;
-
-
+/** default QoS level */
 static int8_t qos_level = MQTTSN_FLAG_QOS_0;
 
 /**
@@ -64,7 +65,13 @@ void (*mqttsn_send)(void *packet);
  */
 void (*mqttsn_receive)(void);
 
-
+/** 
+ * Returns the QoS type for a given QoS level
+ *
+ * @param[in] qos The QoS level.
+ *
+ * @return The corresponding MQTT-SN QoS type for a given valid QoS level, otherwise 0.
+ */
 static uint8_t mqttsn_get_qos_flag(int8_t qos) 
 {
     switch (qos) {
