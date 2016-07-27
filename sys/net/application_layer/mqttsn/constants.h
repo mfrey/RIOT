@@ -30,6 +30,13 @@
 #endif
 
 /**
+ * The default port of MQTT-SN.
+ */
+#ifndef MQTTSN_PORT
+#define MQTTSN_PORT (1883)
+#endif
+
+/**
  * The maxmimum packet length of a MQTT-SN message in bytes.
  */
 #ifndef MQTTSN_MAX_PACKET_LENGTH
