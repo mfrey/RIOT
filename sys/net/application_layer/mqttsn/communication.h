@@ -29,7 +29,7 @@ extern "C" {
 #endif
 
 /**
- * Initializes the MQTT-SN communication module
+ * @brief Initializes the MQTT-SN communication module
  *
  * @param[in] src The source host
  * @param[in] src_port The port at the source host
@@ -39,18 +39,25 @@ extern "C" {
 void mqttsn_communication_init(ipv6_addr_t src, uint16_t src_port, bool enable_forward_encapsulation);
 
 /**
- * Provides means to send MQTT-SN messages over UDP.
+ * @brief Provides means to send MQTT-SN messages over UDP.
  *
  * @param[in] packet The packet to sent over UDP
  */
 void mqttsn_communication_send_udp(void *packet);
 
 /**
- * Receives MQTT-SN messages over UDP. The function initializes a 
- * thread which listens for UDP packets provided by GNRC.
+ * @brief Receives MQTT-SN messages over UDP. 
+ *
+ * The function initializes a thread which listens for UDP packets 
+ * provided by GNRC.
  */
 void mqttsn_communication_receive_udp(void);
 
+/**
+ * @brief Checks if forwarder encapsulation is active.
+ *
+ * @return True if forwarder encapsulation is active, false otherwise.
+ */
 bool mqttsn_communication_is_forwarder_encapsulation_enabled(void);
 
 /**
@@ -62,6 +69,20 @@ bool mqttsn_communication_is_forwarder_encapsulation_enabled(void);
  * otherwise.
  */
 bool mqttsn_communication_is_broadcast_message(uint8_t type);
+
+/**
+ * @brief Sets the gateway address.
+ *
+ * @param[in] dest The address of the gateway
+ */
+void mqttsn_communication_set_destination(ipv6_addr_t *dest);
+
+/**
+ * @brief Sets the port of the gateway.
+ *
+ * @param[in] port The port of the gateway
+ */
+void mqttsn_communication_set_destination_port(uint16_t port);
 
 
 #ifdef __cplusplus

@@ -83,6 +83,16 @@ bool mqttsn_communication_is_broadcast_message(uint8_t type)
     return ((type == MQTTSN_TYPE_SEARCHGW) || (type == MQTTSN_TYPE_GWINFO) || (type == MQTTSN_TYPE_ADVERTISE));
 }
 
+void mqttsn_communication_set_destination(ipv6_addr_t *dest)
+{
+    destination = *dest;
+}
+
+void mqttsn_communication_set_destination_port(uint16_t port)
+{
+    destination_port = port;
+}
+
 void mqttsn_communication_send_udp(void *packet)
 {
     /** the first octet always specifies the length of the packet */
@@ -146,7 +156,7 @@ void mqttsn_communication_send_udp(void *packet)
     /** build ip header */
     if (is_broadcast_message) { 
         /** determine the site global address we might use for "broadcast" */
-        ipv6_addr_t *broadcast_address = NULL;
+        ipv6_addr_t *broadcast_address = NULL;  // TODO
         ip = gnrc_ipv6_hdr_build(udp, NULL, broadcast_address);
     } else {
         ip = gnrc_ipv6_hdr_build(udp, NULL, &destination);
