@@ -53,6 +53,16 @@ void mqttsn_communication_receive_udp(void);
 
 bool mqttsn_communication_is_forwarder_encapsulation_enabled(void);
 
+/**
+ * @brief Checks if a message is a broadcast message.
+ *
+ * @param[in] type The type of the MQTT-SN message.
+ *
+ * @return True if the type of the message is a broadcast message, false
+ * otherwise.
+ */
+bool mqttsn_communication_is_broadcast_message(uint8_t type);
+
 
 #ifdef __cplusplus
 }

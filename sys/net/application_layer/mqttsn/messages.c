@@ -24,7 +24,7 @@
 
 #include <byteorder.h>
 
-#include "net/mqttsn.h"
+#include "net/mqttsn/mqttsn.h"
 
 #include "data.h"
 #include "will.h"
@@ -128,6 +128,9 @@ static void *mqttsn_event_loop(void *args)
         msg_receive(&message);
 
         switch (message.type) {
+            /** search for MQTT-SN gateways */
+            case MQTTSN_CMD_SEARCHGW:
+                mqttsn_search_gateway();
             case MQTTSN_CMD_STATUS:
                 puts("got your message");
             default:
@@ -139,15 +142,17 @@ static void *mqttsn_event_loop(void *args)
 }
 
 kernel_pid_t mqttsn_init(ipv6_addr_t src, uint16_t src_port, bool enable_forward_encapsulation, int8_t qos) 
-//void mqttsn_init(ipv6_addr_t src, uint16_t src_port, ipv6_addr_t dest, uint16_t dest_port, bool enable_forward_encapsulation, int8_t qos) 
 {
+    /** initialized mqtt-sn communication module */
     mqttsn_communication_init(src, src_port, enable_forward_encapsulation);
+    /** packets are sent via udp by default */
     mqttsn_send = mqttsn_communication_send_udp;
+    /** packets are received via udp by default */
     mqttsn_receive = mqttsn_communication_receive_udp;
     /** set the qos level */
     mqttsn_set_qos(qos);
 
-    /* initialize the mqtt-sn thread */
+    /* initialize the mqtt-sn thread which controls the mqtt-sn client */
     if (mqttsn_pid == KERNEL_PID_UNDEF) {
         mqttsn_pid = thread_create(_mqttsn_stack, sizeof(_mqttsn_stack), MQTTSN_PRIO,
                 THREAD_CREATE_STACKTEST, mqttsn_event_loop, NULL, "mqtt-sn");

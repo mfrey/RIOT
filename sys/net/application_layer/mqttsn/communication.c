@@ -78,6 +78,21 @@ void mqttsn_communication_init(ipv6_addr_t src, uint16_t src_port, bool enable_f
     memcpy(wireless_node_id, mqttsn_device_get_node(), wireless_node_length);
 }
 
+bool mqttsn_communication_is_broadcast_message(uint8_t type)
+{
+    switch(type){
+        /** advertise/gwinfo messages are only sent out by gateway and hence for future use */
+        case MQTTSN_TYPE_ADVERTISE:    
+        case MQTTSN_TYPE_GWINFO:
+        /** only sent out by a client */
+        case MQTTSN_TYPE_SEARCHGW:
+            return true;
+        default:
+            return false;
+    }
+
+}
+
 void mqttsn_communication_send_udp(void *packet)
 {
     /** the first octet always specifies the length of the packet */
@@ -94,6 +109,12 @@ void mqttsn_communication_send_udp(void *packet)
         printf("could not add payload to packet buffer\n");
 #endif 
         return;
+    }
+
+    // TODO: check if is a broadcast message and hence has to be sent to
+    // multicast site global
+    if (mqttsn_communication_is_broadcast_message(type)){
+        // TODO: determine address and update destination
     }
 
     /** check if forward encapsulation is enabled */
