@@ -23,13 +23,17 @@
 #ifndef MQTT_SN_H_
 #define MQTT_SN_H_
 
+#include "kernel_types.h"
 #include "net/ipv6/addr.h"
+
+
+#define MQTTSN_CMD_STATUS 0x4201
+#define MQTTSN_CMD_TOPICS_GET 0x4201
+#define MQTTSN_CMD_TOPICS_SET 0x4202
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-void mqttsn_lala(void);
 
 /**
  * @brief Initializes MQTT-SN.
@@ -38,12 +42,14 @@ void mqttsn_lala(void);
  *
  * @brief[in] src The 
  * @brief[in] src_port
- * @brief[in] dest
- * @brief[in] dest_port 
  * @brief[in] enable_forward_encapsulation Indicates if forward encapsulation should be enabled.
  * @brief[in] qos The desired QoS level.
+ *
+ * @return On success the PID of the thread which controls the mqtt-sn client,
+ * -EINVAL, if the priority is greater than or equal to SCHED_PRIO_LEVELS, or 
+ * -EOVERFLOW, if there are too many threads already running
  */
-void mqttsn_init(ipv6_addr_t src, uint16_t src_port, ipv6_addr_t dest, uint16_t dest_port, bool enable_forward_encapsulation, int8_t qos);
+kernel_pid_t mqttsn_init(ipv6_addr_t src, uint16_t src_port, bool enable_forward_encapsulation, int8_t qos);
 
 #ifdef __cplusplus
 }

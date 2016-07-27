@@ -33,12 +33,10 @@ extern "C" {
  *
  * @param[in] src The source host
  * @param[in] src_port The port at the source host
- * @param[in] dest The destination host
- * @param[in] dest_port The port at the destination host
  * @param[in] enable_forward_encapsulation A status flag which indicates if the
  * client provides forward encapsulation
  */
-void mqttsn_communication_init(ipv6_addr_t src, uint16_t src_port, ipv6_addr_t dest, uint16_t dest_port, bool enable_forward_encapsulation);
+void mqttsn_communication_init(ipv6_addr_t src, uint16_t src_port, bool enable_forward_encapsulation);
 
 /**
  * Provides means to send MQTT-SN messages over UDP.

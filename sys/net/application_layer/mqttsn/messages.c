@@ -33,6 +33,8 @@
 #include "gateway.h"
 #include "communication.h"
 
+#define ENABLE_DEBUG 1
+
 /** pid for the mqtt-sn process  */
 kernel_pid_t mqttsn_pid = KERNEL_PID_UNDEF;
 /** message queue for the mqtt-sn process */
@@ -70,7 +72,7 @@ void (*mqttsn_receive)(void);
  *
  * @param[in] qos The QoS level.
  *
- * @return The corresponding MQTT-SN QoS type for a given valid QoS level, otherwise 0.
+ * @return The corresponding MQTT-SN QoS type for a given valid QoS level, otherwise -1.
  */
 static uint8_t mqttsn_get_qos_flag(int8_t qos) 
 {
@@ -103,7 +105,7 @@ static uint8_t mqttsn_get_qos_flag(int8_t qos)
              */
             return MQTTSN_FLAG_QOS_N1;
         default:
-            return 0;
+            return -1;
     }
 }
 
@@ -126,6 +128,8 @@ static void *mqttsn_event_loop(void *args)
         msg_receive(&message);
 
         switch (message.type) {
+            case MQTTSN_CMD_STATUS:
+                puts("got your message");
             default:
                 break;
         }
@@ -134,9 +138,10 @@ static void *mqttsn_event_loop(void *args)
     return NULL;
 }
 
-void mqttsn_init(ipv6_addr_t src, uint16_t src_port, ipv6_addr_t dest, uint16_t dest_port, bool enable_forward_encapsulation, int8_t qos) 
+kernel_pid_t mqttsn_init(ipv6_addr_t src, uint16_t src_port, bool enable_forward_encapsulation, int8_t qos) 
+//void mqttsn_init(ipv6_addr_t src, uint16_t src_port, ipv6_addr_t dest, uint16_t dest_port, bool enable_forward_encapsulation, int8_t qos) 
 {
-    mqttsn_communication_init(src, src_port, dest, dest_port, enable_forward_encapsulation);
+    mqttsn_communication_init(src, src_port, enable_forward_encapsulation);
     mqttsn_send = mqttsn_communication_send_udp;
     mqttsn_receive = mqttsn_communication_receive_udp;
     /** set the qos level */
@@ -147,6 +152,8 @@ void mqttsn_init(ipv6_addr_t src, uint16_t src_port, ipv6_addr_t dest, uint16_t 
         mqttsn_pid = thread_create(_mqttsn_stack, sizeof(_mqttsn_stack), MQTTSN_PRIO,
                 THREAD_CREATE_STACKTEST, mqttsn_event_loop, NULL, "mqtt-sn");
     }
+
+    return mqttsn_pid;
 }
 
 
@@ -375,7 +382,7 @@ void mqttsn_publish(uint16_t topic_identifier, uint8_t topic_type, const void* d
 
     if (size != payload_size) {
 #if ENABLE_DEBUG 
-        printf("there is a mismatch in the size of the topic length. got: %d but expected: %d !\n", size, topic_length);
+        printf("there is a mismatch in the size of the topic length. got: %d but expected: %d !\n", size, payload_size);
 #endif 
         return;
     }
@@ -836,7 +843,7 @@ void mqttsn_set_qos(int8_t qos)
     int8_t result = mqttsn_get_qos_flag(qos);
 
     /** unknown qos level */
-    if ((result == 0) || (result == MQTTSN_FLAG_QOS_N1)) {
+    if ((result == -1) || (result == MQTTSN_FLAG_QOS_N1)) {
 #if ENABLE_DEBUG 
         printf("could not set new qos level. reason: unsupported qos level: %d \n", qos);
 #endif

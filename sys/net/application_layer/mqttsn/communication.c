@@ -29,6 +29,8 @@
 
 #include <string.h>
 
+#define ENABLE_DEBUG 1
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -56,12 +58,15 @@ static void* mqttsn_communication_receive_udp_event_loop(void *args);
 /***/
 static bool mqttsn_communication_is_udp_packet(char *data);
 
-void mqttsn_communication_init(ipv6_addr_t src, uint16_t src_port, ipv6_addr_t dest, uint16_t dest_port, bool enable_forward_encapsulation)
+void mqttsn_communication_init(ipv6_addr_t src, uint16_t src_port, bool enable_forward_encapsulation)
 {
+#if ENABLE_DEBUG 
+    printf("initialize communication module\n");
+#endif 
     source = src;
-    destination = dest;
+    //destination = dest;
     source_port = src_port;
-    destination_port = dest_port;
+    //destination_port = dest_port;
 
     forward_encapsulation = enable_forward_encapsulation;
 
