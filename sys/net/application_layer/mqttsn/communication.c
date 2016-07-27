@@ -80,17 +80,7 @@ void mqttsn_communication_init(ipv6_addr_t src, uint16_t src_port, bool enable_f
 
 bool mqttsn_communication_is_broadcast_message(uint8_t type)
 {
-    switch(type){
-        /** advertise/gwinfo messages are only sent out by gateway and hence for future use */
-        case MQTTSN_TYPE_ADVERTISE:    
-        case MQTTSN_TYPE_GWINFO:
-        /** only sent out by a client */
-        case MQTTSN_TYPE_SEARCHGW:
-            return true;
-        default:
-            return false;
-    }
-
+    return ((type == MQTTSN_TYPE_SEARCHGW) || (type == MQTTSN_TYPE_GWINFO) || (type == MQTTSN_TYPE_ADVERTISE));
 }
 
 void mqttsn_communication_send_udp(void *packet)
@@ -99,6 +89,8 @@ void mqttsn_communication_send_udp(void *packet)
     size_t length = ((uint8_t*)packet)[0];
     /** retrieve the type of the packet */
     uint8_t type = mqttsn_get_type(packet);
+    /** is the message a "broadcast" message */
+    bool is_broadcast_message = mqttsn_communication_is_broadcast_message(type);
 
     gnrc_pktsnip_t *payload, *udp, *ip;
 
@@ -109,12 +101,6 @@ void mqttsn_communication_send_udp(void *packet)
         printf("could not add payload to packet buffer\n");
 #endif 
         return;
-    }
-
-    // TODO: check if is a broadcast message and hence has to be sent to
-    // multicast site global
-    if (mqttsn_communication_is_broadcast_message(type)){
-        // TODO: determine address and update destination
     }
 
     /** check if forward encapsulation is enabled */
@@ -158,7 +144,14 @@ void mqttsn_communication_send_udp(void *packet)
     }
 
     /** build ip header */
-    ip = gnrc_ipv6_hdr_build(udp, NULL, &destination);
+    if (is_broadcast_message) { 
+        /** determine the site global address we might use for "broadcast" */
+        ipv6_addr_t *broadcast_address = NULL;
+        ip = gnrc_ipv6_hdr_build(udp, NULL, broadcast_address);
+    } else {
+        ip = gnrc_ipv6_hdr_build(udp, NULL, &destination);
+    }
+
     if (!ip) {
 #if ENABLE_DEBUG 
         printf("could not add ip header to packet buffer\n");
@@ -171,7 +164,7 @@ void mqttsn_communication_send_udp(void *packet)
      * The 'broadcast radius' (see section 6.1 of the MQTT-SN specification)
      * indicates to how many hops a packet is forwarded.
      */
-    if ((type == MQTTSN_TYPE_SEARCHGW) || (type == MQTTSN_TYPE_GWINFO)) {
+    if (is_broadcast_message) { 
         // TODO: forward encapsulation? what to do?
         ((ipv6_hdr_t*)ip->data)->hl = mqttsn_get_radius();
     }
