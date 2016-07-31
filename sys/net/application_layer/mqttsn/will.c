@@ -111,7 +111,7 @@ int8_t mqttsn_will_set_message(char *msg, size_t msg_length)
     return result;
 }
 
-uint8_t mqttsn_will_msg_size(void) 
+uint8_t mqttsn_will_message_size(void) 
 {
     return will_msg_size;
 }
@@ -129,5 +129,9 @@ char* mqttsn_will_get_message(void)
 char* mqttsn_will_get_topic(void)
 {
     return will_topic;
+}
 
+void mqttsn_will_print(void)
+{
+    printf("will topic: %s will message: %s\n", will_topic, will_msg);
 }

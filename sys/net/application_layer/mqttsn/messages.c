@@ -25,6 +25,7 @@
 #include <byteorder.h>
 
 #include "net/mqttsn/mqttsn.h"
+#include "net/mqttsn/commands.h"
 
 #include "data.h"
 #include "will.h"
@@ -116,13 +117,8 @@ static void *mqttsn_event_loop(void *args)
 
     /** avoid the warning about the unused variable*/
     (void)args;
-
-    if(msg_init_queue(message_queue, MQTTSN_MSG_QUEUE_SIZE) == -1){
-#if ENABLE_DEBUG 
-        printf("could not initialize message queue!\n");
-#endif 
-        return NULL;
-    }
+    /** initialize message queue */
+    msg_init_queue(message_queue, MQTTSN_MSG_QUEUE_SIZE);
 
     while (1) {
         msg_receive(&message);
@@ -131,6 +127,21 @@ static void *mqttsn_event_loop(void *args)
             /** search for MQTT-SN gateways */
             case MQTTSN_CMD_SEARCHGW:
                 mqttsn_search_gateway();
+            /** prints all known gateways */
+            case MQTTSN_CMD_PRINTGW:
+                // TODO: replace with active gateway id as soon we have a
+                // variable for that
+                mqttsn_gateway_print(-1);
+            case MQTTSN_CMD_SET_WILL_MSG:
+                /** check if the message does not exceed the maximum WILL message length */
+
+                /** send a WILLMSGUPD message */
+                //mqttsn_will_update();
+                /** wait for response before the message is finally set */
+
+            /** prints WILL topic and message */
+            case MQTTSN_CMD_PRINTWILL:
+                mqttsn_will_print();
             case MQTTSN_CMD_STATUS:
                 puts("got your message");
             default:
@@ -678,7 +689,7 @@ void mqttsn_handle_msg(char *data, ipv6_addr_t *source)
              * A MQTT-SN client responses upon reception of a WILLMSGREQ
              * message by sending a WILLMSG.
              */
-            mqttsn_will(false);
+            mqttsn_will(mqttsn_will_get_message(), mqttsn_will_message_size(), false);
             break;
         case MQTTSN_TYPE_WILLMSG:    
         case MQTTSN_TYPE_REGISTER:  
@@ -756,20 +767,20 @@ void mqttsn_will_topic_delete(void)
     mqttsn_send(&will_topic_delete_packet);
 }
 
-void mqttsn_will_update(void) 
+void mqttsn_will_update(const char* will_msg, size_t will_msg_size)
 {
     /**
      * The WILLMSGUPD differs from the WILLMSG just in the
      * flag. The new Will has to be stored before calling
      * this function.
      */
-    mqttsn_will(true);
+    mqttsn_will(will_msg, will_msg_size, true);
 }
 
-void mqttsn_will(bool flag)
+void mqttsn_will(const char* will_msg, size_t will_msg_size, bool flag)
 {
     /** size of the packet */
-    size_t size = 0x02 + mqttsn_will_msg_size();
+    size_t size = 0x02 + will_msg_size;
     char data[size];
 
     /** WILL messages consist only of a mqttsn_header and the WILL message */
@@ -783,9 +794,7 @@ void mqttsn_will(bool flag)
         will_packet->msg_type = MQTTSN_TYPE_WILLMSGUPD;
     }
 
-    char* will_msg = mqttsn_will_get_message(); 
     memcpy(will_packet+1, will_msg, (size - 0x02));
-
     mqttsn_send(will_packet);
 }
 

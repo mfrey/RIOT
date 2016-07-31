@@ -17,7 +17,6 @@
  */
 
 #include "gateway.h"
-
 #include "stdlib.h"
 
 static mqttsn_gateway_entry_t *gateways = NULL;
@@ -69,14 +68,6 @@ bool mqttsn_gateway_add(uint8_t gw_id, ipv6_addr_t *address, uint16_t duration)
     return false;
 }
 
-/*
-mqttsn_gateway_entry_t* mqttsn_gateway_get_entry(uint8_t index) 
-{
-    return NULL;
-}
-*/
-
-
 mqttsn_gateway_entry_t* mqttsn_gateway_get_most_recent_entry(void) 
 {
     if (gateways != NULL) {
@@ -110,5 +101,23 @@ void mqttsn_gateway_clear(void)
     DL_FOREACH_SAFE(gateways, entry, tmp) {
         DL_DELETE(gateways, entry);
         free(entry);
+    }
+}
+
+void mqttsn_gateway_print(uint8_t gw_id)
+{
+    mqttsn_gateway_entry_t *gateway;
+    char address[IPV6_ADDR_MAX_STR_LEN];
+
+    DL_FOREACH(gateways, gateway) {
+        ipv6_addr_to_str(address, &(gateway->address), IPV6_ADDR_MAX_STR_LEN);
+
+        /** checks if the current list element is the active gateway */
+        if (gateway->gw_id == gw_id) { 
+            /** a '*' indicates the active gateway */
+            printf("[*] gateway id: %d, address: %s, duration: %d\n", gateway->gw_id, address, gateway->duration);
+        } else {
+            printf("[ ] gateway id: %d, address: %s, duration: %d\n", gateway->gw_id, address, gateway->duration);
+        }
     }
 }

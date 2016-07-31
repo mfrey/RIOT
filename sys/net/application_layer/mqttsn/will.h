@@ -27,7 +27,7 @@ extern "C" {
 #endif
 
 /**
- * Initializes variables responsible for handling WILL topics and messages.
+ * @brief Initializes variables responsible for handling WILL topics and messages.
  *
  * @param[in] will_topic The WILL topic to set
  * @param[in] topic_length The length of the WILL topic
@@ -37,21 +37,21 @@ extern "C" {
 void mqttsn_will_init(char *will_topic, size_t topic_length, char *will_msg, size_t message_length);
 
 /**
- * Returns the WILL message set by the client.
+ * @brief Returns the WILL message set by the client.
  *
  * @return On success the will message of the client, otherwise NULL.
  */
 char* mqttsn_will_get_message(void);
 
 /**
- * Returns the WILL topic set by the client.
+ * @brief Returns the WILL topic set by the client.
  *
  * @return On success the will topic of the client, otherwise NULL.
  */
 char* mqttsn_will_get_topic(void);
 
 /**
- * Updates or sets a new WILL topic.
+ * @brief Updates or sets a new WILL topic.
  *
  * @param[in] topic The topic to be set or updated.
  * @param[in] topic_length The length of the new or updated topic.
@@ -61,7 +61,7 @@ char* mqttsn_will_get_topic(void);
 int8_t mqttsn_will_set_topic(char *topic, size_t length);
 
 /**
- * Updates or sets a new WILL message.
+ * @brief Updates or sets a new WILL message.
  *
  * @param[in] topic The message to be set or updated.
  * @param[in] topic_length The length of the new or updated message.
@@ -70,9 +70,26 @@ int8_t mqttsn_will_set_topic(char *topic, size_t length);
  */
 int8_t mqttsn_will_set_message(char *message, size_t length);
 
-uint8_t mqttsn_will_msg_size(void);
+/**
+ * @brief Prints the WILL topic and message.
+ */
+void mqttsn_will_print(void);
 
+/**
+ * @brief Returns the size of the WILL message.
+ *
+ * @return The size of the WILL message.
+ */
+uint8_t mqttsn_will_message_size(void);
+
+/**
+ * @brief Returns the size of the WILL topic.
+ *
+ * @return The size of the WILL topic.
+ */
 uint8_t mqttsn_will_topic_size(void);
+
+
 
 void mqttsn_will_clear(void);
 

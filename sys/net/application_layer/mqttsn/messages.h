@@ -330,8 +330,11 @@ void mqttsn_will_topic(void);
 /**
  * @brief Requests the gateway to update the previously stored WILL update by sending
  * a WILLMSGUPD message.
+ *
+ * @param[in] will_msg The new WILL message.
+ * @param[in] will_msg_size The size of the new WILL message.
  */
-void mqttsn_will_update(void);
+void mqttsn_will_update(const char* will_msg, size_t will_msg_size);
 
 /**
  * @brief Sends a WILLTOPIC with no flags and WILL to the gateway. 
@@ -344,9 +347,11 @@ void mqttsn_will_topic_delete(void);
 /**
  * @brief Sends a WILL message containing the WILL message to the gateway.
  *
+ * @param[in] will_msg The WILL message.
+ * @param[in] will_msg_size The size of the WILL message.
  * @param[in] flag Indicating if this is an update of the will message.
  */
-void mqttsn_will(bool flag);
+void mqttsn_will(const char* will_msg, size_t will_msg_size, bool flag);
 
 /**
  * Checks if a given node id is valid.

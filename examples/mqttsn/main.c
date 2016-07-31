@@ -22,6 +22,7 @@
 
 #include "msg.h"
 #include "net/mqttsn/mqttsn.h"
+#include "net/mqttsn/commands.h"
 
 #include "net/ipv6/addr.h"
 #include "net/gnrc/netif.h"

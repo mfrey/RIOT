@@ -26,12 +26,6 @@
 #include "kernel_types.h"
 #include "net/ipv6/addr.h"
 
-
-#define MQTTSN_CMD_STATUS 0x4201
-#define MQTTSN_CMD_TOPICS_GET 0x4202
-#define MQTTSN_CMD_TOPICS_SET 0x4203
-#define MQTTSN_CMD_SEARCHGW 0x4204
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -41,8 +35,8 @@ extern "C" {
  *
  * TODO: detailed description
  *
- * @brief[in] src The 
- * @brief[in] src_port
+ * @brief[in] src The source address of the client.
+ * @brief[in] src_port The port MQTT-SN should run.
  * @brief[in] enable_forward_encapsulation Indicates if forward encapsulation should be enabled.
  * @brief[in] qos The desired QoS level.
  *

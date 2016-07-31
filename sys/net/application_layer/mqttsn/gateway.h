@@ -97,7 +97,12 @@ mqttsn_gateway_entry_t* mqttsn_gateway_get_most_recent_entry(void);
  */
 int8_t mqttsn_gateway_compare(mqttsn_gateway_entry_t *first, mqttsn_gateway_entry_t *second);
 
-//mqttsn_gateway_entry_t* mqttsn_gateway_get_entry(uint8_t index);
+/**
+ * @brief Prints all known gateways to the command line.
+ *
+ * @param[in] gw_id The active gatewy id.
+ */
+void mqttsn_gateway_print(uint8_t gw_id);
 
 #ifdef __cpluslus
 }
