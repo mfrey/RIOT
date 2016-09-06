@@ -8,6 +8,7 @@
 
 #include "tests-mqttsn.h"
 #include "string.h"
+
 #include "mqttsn/will.h"
 
 static void teardown(void)
@@ -26,7 +27,7 @@ static void test_mqttsn_will_init(void)
     /** set the topic and will */
     mqttsn_will_init(topic, topic_length, will, will_length);
     /** should match the length of the topic/will */
-    TEST_ASSERT_EQUAL_INT(will_length, mqttsn_will_msg_size());
+    TEST_ASSERT_EQUAL_INT(will_length, mqttsn_will_message_size());
     TEST_ASSERT_EQUAL_INT(topic_length, mqttsn_will_topic_size());
 }
 
@@ -59,7 +60,7 @@ static void test_mqttsn_will_set_message(void)
      *
      */
     TEST_ASSERT_EQUAL_INT(result, -1);
-    TEST_ASSERT_EQUAL_INT(MQTTSN_DEFAULT_WILL_MESSAGE_SIZE, mqttsn_will_msg_size());
+    TEST_ASSERT_EQUAL_INT(MQTTSN_DEFAULT_WILL_MESSAGE_SIZE, mqttsn_will_message_size());
 }
 
 Test *tests_mqttsn_will_tests(void) 

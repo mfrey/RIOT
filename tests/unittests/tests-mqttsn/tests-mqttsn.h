@@ -20,7 +20,7 @@
 
 #include "embUnit.h"
 
-#include "mqttsn/mqttsn.h"
+#include "mqttsn/messages.h"
 #include "mqttsn/constants.h"
 
 #ifdef __cplusplus
