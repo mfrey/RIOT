@@ -26,14 +26,14 @@
 
 #include "net/ipv6/addr.h"
 
-#include "constants.h"
+#include "net/mqttsn/constants.h"
 
 #ifdef __cpluslus
 extern "C" {
 #endif 
 
 /**
- * @brief Defines the types (msg_type field) of  MQTT-SN messages.
+ * @brief Defines the types (msg_type field) of MQTT-SN messages.
  */
 typedef enum {
     MQTTSN_TYPE_ADVERTISE       = 0x00,

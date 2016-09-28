@@ -27,7 +27,7 @@
 #include "net/ipv6/addr.h"
 
 #include "utlist.h"
-#include "constants.h"
+#include "net/mqttsn/constants.h"
 
 #ifdef __cpluslus
 extern "C" {

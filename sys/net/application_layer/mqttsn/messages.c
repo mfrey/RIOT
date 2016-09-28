@@ -31,6 +31,7 @@
 #include "will.h"
 #include "topic.h"
 #include "debug.h"
+#include "device.h"
 #include "gateway.h"
 #include "communication.h"
 
@@ -46,6 +47,8 @@ static uint16_t message_id = 1;
 static uint8_t radius = MQTTSN_DEFAULT_RADIUS;
 /** default QoS level */
 static int8_t qos_level = MQTTSN_FLAG_QOS_0;
+/** current state of the mqtt-sn client */
+static mqttsn_state_t mqttsn_state;
 
 /**
  * Sends MQTT-SN messages.
@@ -129,9 +132,7 @@ static void *mqttsn_event_loop(void *args)
                 mqttsn_search_gateway();
             /** prints all known gateways */
             case MQTTSN_CMD_PRINTGW:
-                // TODO: replace with active gateway id as soon we have a
-                // variable for that
-                mqttsn_gateway_print(-1);
+                mqttsn_gateway_print(mqttsn_state.gw_id);
             case MQTTSN_CMD_SET_WILL_MSG:
                 /** check if the message does not exceed the maximum WILL message length */
 
@@ -152,8 +153,10 @@ static void *mqttsn_event_loop(void *args)
     return NULL;
 }
 
-kernel_pid_t mqttsn_init(ipv6_addr_t src, uint16_t src_port, bool enable_forward_encapsulation, int8_t qos) 
+kernel_pid_t mqttsn_init(ipv6_addr_t src, uint16_t src_port, bool enable_forward_encapsulation, int8_t qos, uint8_t *device_identifier, uint8_t size)
 {
+    mqttsn_device_init(device_identifier, size);
+
     /** initialized mqtt-sn communication module */
     mqttsn_communication_init(src, src_port, enable_forward_encapsulation);
     /** packets are sent via udp by default */

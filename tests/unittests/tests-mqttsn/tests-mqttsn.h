@@ -21,7 +21,8 @@
 #include "embUnit.h"
 
 #include "mqttsn/messages.h"
-#include "mqttsn/constants.h"
+
+#include "net/mqttsn/constants.h"
 
 #ifdef __cplusplus
 extern "C" {

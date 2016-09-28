@@ -21,7 +21,7 @@
 
 #include "stdint.h"
 
-#include "constants.h"
+#include "net/mqttsn/constants.h"
 
 #ifdef __cplusplus
 extern "C" {

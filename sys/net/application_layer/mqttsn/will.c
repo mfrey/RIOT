@@ -20,7 +20,7 @@
 #include <string.h>
 
 #include "will.h" 
-#include "constants.h"
+#include "net/mqttsn/constants.h"
 
 /** The WILL message set by the client. */
 static char will_msg[MQTTSN_DEFAULT_WILL_MESSAGE_SIZE];

@@ -18,7 +18,6 @@
 
 #include "communication.h" 
 #include "messages.h"
-#include "constants.h"
 #include "device.h"
 
 #include "net/gnrc.h"
@@ -26,6 +25,8 @@
 #include "net/gnrc/nettype.h"
 #include "net/gnrc/udp.h"
 #include "net/gnrc/pktdump.h"
+
+#include "net/mqttsn/constants.h"
 
 #include <string.h>
 
@@ -39,24 +40,32 @@ extern "C" {
 kernel_pid_t mqttsn_receiver_pid = KERNEL_PID_UNDEF;
 /** message queue for the mqtt-sn process */
 static char _mqttsn_receive_stack[MQTTSN_STACK_SIZE];
-/** */
+/** indicates if forward encapsulation is active */
 static bool forward_encapsulation = false;
-/** */
-static ipv6_addr_t source;
-/** */
+/** the IPv6 address of this mqtt-sn client */
+static ipv6_addr_t source = IPV6_ADDR_UNSPECIFIED;
+/** the source port of this mqtt-sn client */
 static uint16_t source_port;
-/** */
-static ipv6_addr_t destination;
-/** */
+/** the IPv6 destination address of a mqtt-sn message */
+static ipv6_addr_t destination = IPV6_ADDR_UNSPECIFIED;
+/** the IPv6 destination port of a mqtt-sn message */
 static uint16_t destination_port;
-/** */
+/** the wireless node identifier of this mqtt-sn client */
 static uint8_t wireless_node_id[MQTTSN_MAX_WIRELESS_NODE_ID_LENGTH];  
-/** */
+/** the size of the wireless node identifier */
 static uint8_t wireless_node_length;
-/***/
+/** the event loop for the receive thread */
 static void* mqttsn_communication_receive_udp_event_loop(void *args);
-/***/
+
+/** 
+ * Checks if the packet is a udp packet 
+ *
+ * @param[in] data The data to check
+ *
+ * @return True if the data contains a UDP packet, false otherwise
+ */
 static bool mqttsn_communication_is_udp_packet(char *data);
+
 
 void mqttsn_communication_init(ipv6_addr_t src, uint16_t src_port, bool enable_forward_encapsulation)
 {
@@ -70,8 +79,7 @@ void mqttsn_communication_init(ipv6_addr_t src, uint16_t src_port, bool enable_f
 
     forward_encapsulation = enable_forward_encapsulation;
 
-    /** TODO: make this a parameter */
-    mqttsn_device_init(NULL, 0);
+    // TODO: add checks if this fails 
     /** set the size */
     wireless_node_length = mqttsn_device_get_node_length();
     /** set the wireless node id */
