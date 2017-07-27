@@ -1,3 +1,5 @@
+OPENWSN_CONTRIB := $(RIOTBASE)/pkg/openwsn/contrib
+
 INCLUDES += -I$(PKGDIRBASE)/openwsn-fw \
       -I$(PKGDIRBASE)/openwsn-fw/kernel \
       -I$(PKGDIRBASE)/openwsn-fw/inc \
@@ -11,3 +13,9 @@ INCLUDES += -I$(PKGDIRBASE)/openwsn-fw \
       -I$(PKGDIRBASE)/openwsn-fw/openstack/03b-IPv6 \
       -I$(PKGDIRBASE)/openwsn-fw/openstack/04-TRAN \
       -I$(PKGDIRBASE)/openwsn-fw/openstack/cross-layers \
+      -I$(RIOTBASE)/pkg/openwsn/include \
+
+ifneq (,$(filter openwsn_sock_udp,$(USEMODULE)))
+  DIRS += $(OPENWSN_CONTRIB)/sock/udp
+  CFLAGS += -DSOCK_HAS_IPV6
+endif
