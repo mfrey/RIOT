@@ -23,6 +23,7 @@
 #include "tlsf-malloc.h"
 #include "msg.h"
 #include "shell.h"
+#include "ccnl-cs-ll.h"
 #include "ccn-lite-riot.h"
 #include "net/gnrc/netif.h"
 #include "net/gnrc/pktdump.h"
@@ -43,6 +44,8 @@ int main(void)
     puts("Basic CCN-Lite example");
 
     ccnl_core_init();
+
+    ccnl_cs_ll_init((&ccnl_relay.content_options));
 
     ccnl_start();
 
