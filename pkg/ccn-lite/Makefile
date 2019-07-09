@@ -1,4 +1,5 @@
 PKG_NAME=ccn-lite
+PKG_SOURCE_LOCAL ?= $(RIOTBASE)/../ccn-lite
 PKG_URL=https://github.com/cn-uofbasel/ccn-lite/
 PKG_VERSION=f85a2a055db92b5978f2d4f92b830b5b6b9acb42
 PKG_LICENSE=ISC

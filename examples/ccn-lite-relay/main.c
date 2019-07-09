@@ -28,6 +28,8 @@
 #include "net/gnrc/netif.h"
 #include "net/gnrc/pktdump.h"
 
+extern int debug_level;
+
 /* main thread's message queue */
 #define MAIN_QUEUE_SIZE     (8)
 static msg_t _main_msg_queue[MAIN_QUEUE_SIZE];
@@ -42,10 +44,13 @@ int main(void)
     msg_init_queue(_main_msg_queue, MAIN_QUEUE_SIZE);
 
     puts("Basic CCN-Lite example");
+    debug_level = LOG_ALL;
 
     ccnl_core_init();
 
-    ccnl_cs_ll_init((&ccnl_relay.content_options));
+    ccnl_cs_ops_t content_store;
+    ccnl_relay.content_options = &content_store;
+    ccnl_cs_init_ll((ccnl_relay.content_options));
 
     ccnl_start();
 
